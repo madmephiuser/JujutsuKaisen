@@ -2,10 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package parser;
+package com.mycompany.parser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.Mission;
+import com.mycompany.jujutsukaisen.Mission;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +28,7 @@ public class JsonParser {
             }
             return mapper.readValue(file, Mission.class);
         } catch (IOException e) {
-            System.out.println("Ошибка в структуре JSON: " + e.getMessage());
+            System.out.println("Ошибка в структуре JSON " + e.getMessage());
             return null;
         }
     }

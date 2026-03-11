@@ -1,4 +1,4 @@
-package core;
+package com.mycompany.jujutsukaisen;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -8,14 +8,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Technique {
+public class Curse {
     public String name;
-    public String type;
-    public String owner;
-    public long damage;
+    public String threatLevel;
     
-    public Technique(){
+    public Curse() {
     }
 }

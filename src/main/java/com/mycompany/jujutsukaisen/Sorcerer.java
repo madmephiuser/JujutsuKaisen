@@ -1,4 +1,4 @@
-package core;
+package com.mycompany.jujutsukaisen;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
