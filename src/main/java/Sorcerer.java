@@ -7,10 +7,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Curse {
+public class Sorcerer {
     public String name;
-    public String threatLevel;
+    public String rank;
     
-    public Curse() {
+    public Sorcerer(){
     }
 }

@@ -19,7 +19,7 @@ public class Mission {
     public long damageCost;
     
     public Curse curse;
-    public List<Sorcerers> sorcerers;
+    public List<Sorcerer> sorcerers;
     public List<Technique> techniques;
     @JsonAlias({"comment", "note"})
     public String comment;
