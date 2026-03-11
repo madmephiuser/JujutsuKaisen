@@ -1,3 +1,5 @@
+package core;
+
 
 
 /*
@@ -5,6 +7,7 @@
  */
 
 
+import core.Curse;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
