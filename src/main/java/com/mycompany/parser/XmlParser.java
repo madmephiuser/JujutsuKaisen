@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-public class XmlParser {
+public class XmlParser implements MissionParser{
     private final XmlMapper xmlMapper = new XmlMapper();
 
     public Mission parse(String filePath) {

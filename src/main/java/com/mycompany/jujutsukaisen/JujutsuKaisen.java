@@ -4,21 +4,27 @@
  */
 package com.mycompany.jujutsukaisen;
 
-import static com.mycompany.jujutsukaisen.MissionRenderer.showMission;
+import com.mycompany.parser.*;
 import java.util.Scanner;
-import com.mycompany.parser.JsonParser;
 
 public class JujutsuKaisen {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        JsonParser jsonParser = new JsonParser();
-
-        System.out.print("Введите путь к файлу: ");
+        System.out.print("Введите путь к файлу миссии: ");
         String path = scanner.nextLine();
-        Mission mission = jsonParser.parse(path);
-        
+
+        MissionParser parser = FactoryParser.getParser(path);
+
+        if (parser == null) {
+            System.out.println("Неподдерживаемый формат файла");
+            return;
+        }
+        Mission mission = parser.parse(path);
+
         if (mission != null) {
-            showMission(mission);
+            MissionRenderer.showMission(mission);
+        } else {
+            System.out.println("Не удалось обработать данные миссии");
         }
     }
 }

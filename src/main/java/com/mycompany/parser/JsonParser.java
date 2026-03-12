@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 
-public class JsonParser {
+public class JsonParser implements MissionParser {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public Mission parse(String filePath) {

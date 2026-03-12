@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class TxtParser {
+public class TxtParser implements MissionParser{
+
     public Mission parse(String filePath) {
     try {
         List<String> lines = Files.readAllLines(Paths.get(filePath));
