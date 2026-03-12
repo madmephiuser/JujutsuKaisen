@@ -8,10 +8,6 @@ import static com.mycompany.jujutsukaisen.MissionRenderer.showMission;
 import java.util.Scanner;
 import com.mycompany.parser.JsonParser;
 
-/**
- *
- * @author Professional
- */
 public class JujutsuKaisen {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);

@@ -33,7 +33,7 @@ public class MissionRenderer {
         }
 
         if (m.comment != null) {
-            System.out.println("\nПРИМЕЧАНИЕ: " + m.comment);
+            System.out.println("\nПримечание: " + m.comment);
         }
     }
 }
