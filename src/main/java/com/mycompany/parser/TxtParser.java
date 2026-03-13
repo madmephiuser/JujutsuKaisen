@@ -40,6 +40,7 @@ public class TxtParser implements MissionParser {
 
                 switch (key) {
                     case "missionId" -> mission.setMissionId(value);
+                    case "date" -> mission.setDate(value);
                     case "location" -> mission.setLocation(value);
                     case "outcome" -> mission.setOutcome(value);
                     case "damageCost" -> mission.setDamageCost(Long.parseLong(value));
