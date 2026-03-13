@@ -14,51 +14,74 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class TxtParser implements MissionParser{
-
+public class TxtParser implements MissionParser {
+    @Override
     public Mission parse(String filePath) {
-    try {
-        List<String> lines = Files.readAllLines(Paths.get(filePath));
-        Mission mission = new Mission();
-        mission.curse = new Curse();
-        mission.sorcerers = new ArrayList<>();
-        mission.techniques = new ArrayList<>();
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(filePath));
+            if (lines.isEmpty()) return null;
 
-        for (String line : lines) {
-            if (!line.contains(":")) continue;
-            String[] parts = line.split(":", 2);
-            String key = parts[0].trim();
-            String value = parts[1].trim();
-
-            if (key.equals("missionId")) mission.missionId = value;
-            if (key.equals("location")) mission.location = value;
-            if (key.equals("outcome")) mission.outcome = value;
-            if (key.equals("damageCost")) mission.damageCost = Long.parseLong(value);
-
-            if (key.startsWith("curse.")) {
-                if (key.endsWith(".name")) mission.curse.name = value;
-                if (key.endsWith(".threatLevel")) mission.curse.threatLevel = value;
+            String firstLine = lines.get(0).trim();
+            if (firstLine.startsWith("{") || firstLine.startsWith("<")) {
+                System.out.println("Ошибка неверный формат файла");
+                return null;
             }
 
-            if (key.startsWith("sorcerer[")) {
-                int index = Integer.parseInt(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
-                while (mission.sorcerers.size() <= index) mission.sorcerers.add(new Sorcerer());              
-                if (key.endsWith(".name")) mission.sorcerers.get(index).name = value;
-                if (key.endsWith(".rank")) mission.sorcerers.get(index).rank = value;
+            Mission mission = new Mission();
+            mission.setCurse(new Curse());
+            mission.setSorcerers(new ArrayList<>());
+            mission.setTechniques(new ArrayList<>());
+
+            for (String line : lines) {
+                if (!line.contains(":")) continue;
+                String[] parts = line.split(":", 2);
+                String key = parts[0].trim();
+                String value = parts[1].trim();
+
+                switch (key) {
+                    case "missionId" -> mission.setMissionId(value);
+                    case "location" -> mission.setLocation(value);
+                    case "outcome" -> mission.setOutcome(value);
+                    case "damageCost" -> mission.setDamageCost(Long.parseLong(value));
+                    case "note", "comment" -> mission.setComment(value);
+                }
+
+                if (key.startsWith("curse.")) {
+                    if (key.endsWith(".name")) mission.getCurse().setName(value);
+                    if (key.endsWith(".threatLevel")) mission.getCurse().setThreatLevel(value);
+                }
+
+                if (key.startsWith("sorcerer[")) {
+                    int index = extractIndex(key);
+                    while (mission.getSorcerers().size() <= index) mission.getSorcerers().add(new Sorcerer());
+                    if (key.endsWith(".name")) mission.getSorcerers().get(index).setName(value);
+                    if (key.endsWith(".rank")) mission.getSorcerers().get(index).setRank(value);
+                }
+
+                if (key.startsWith("technique[")) {
+                    int index = extractIndex(key);
+                    while (mission.getTechniques().size() <= index) {
+                        mission.getTechniques().add(new Technique());
+                    }
+                    
+                    Technique currentTech = mission.getTechniques().get(index);
+                    
+                    if (key.endsWith(".name")) currentTech.setName(value);
+                    if (key.endsWith(".type")) currentTech.setType(value);
+                    if (key.endsWith(".damage")) currentTech.setDamage(Long.parseLong(value));
+                    
+                    if (key.endsWith(".owner")) {
+                        currentTech.setOwner(new Sorcerer(value));
+                    }
+                }
             }
-            if (key.startsWith("technique[")) {
-                int index = Integer.parseInt(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
-                while (mission.techniques.size() <= index) mission.techniques.add(new Technique());
-                
-                if (key.endsWith(".name")) mission.techniques.get(index).name = value;
-                if (key.endsWith(".type")) mission.techniques.get(index).type = value;
-                if (key.endsWith(".damage")) mission.techniques.get(index).damage = Long.parseLong(value);
-            }
+            return mission;
+        } catch (Exception e) {
+            return null;
         }
-        return mission;
-    } catch (Exception e) {
-        System.out.println("Ошибка в структуре TXT " + e.getMessage());
-        return null;
     }
-}
+
+    private int extractIndex(String key) {
+        return Integer.parseInt(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
+    }
 }

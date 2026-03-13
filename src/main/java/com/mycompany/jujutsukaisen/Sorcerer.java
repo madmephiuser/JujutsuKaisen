@@ -10,9 +10,27 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Sorcerer {
-    public String name;
-    public String rank;
+    private String name;
+    private String rank;
     
-    public Sorcerer(){
+    public Sorcerer() {
+        
+    }
+    public Sorcerer(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name; 
+    }
+    public void setName(String name) {
+        this.name = name; 
+    }
+
+    public String getRank() {
+        return rank; 
+    }
+    public void setRank(String rank) {
+        this.rank = rank; 
     }
 }

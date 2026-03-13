@@ -6,10 +6,6 @@ package com.mycompany.parser;
 
 import com.mycompany.jujutsukaisen.Mission;
 
-/**
- *
- * @author Professional
- */
 public interface MissionParser {
     Mission parse(String filePath);
 }
