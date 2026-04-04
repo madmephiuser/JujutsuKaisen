@@ -14,8 +14,11 @@ public class FactoryParser {
             return new XmlParser();
         } else if (lowerPath.endsWith(".txt")) {
             return new TxtParser();
-        } else {
+        } else if (lowerPath.endsWith(".yaml") || lowerPath.endsWith(".yml")) {
+            return new YamlParser();
+        }
+        else {
             return null;
         }
-    }  
+    }
 }

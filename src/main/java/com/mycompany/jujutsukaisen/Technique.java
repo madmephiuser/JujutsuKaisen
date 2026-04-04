@@ -2,17 +2,13 @@ package com.mycompany.jujutsukaisen;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+import enums.TechniqueType;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Technique {
     private String name;
-    private String type;
+    private TechniqueType type;
     private Sorcerer owner; 
     private long damage;
 
@@ -25,10 +21,10 @@ public class Technique {
         this.name = name; 
     }
 
-    public String getType() {
+    public TechniqueType getType() {
         return type; 
     }
-    public void setType(String type) {
+    public void setType(TechniqueType type) {
         this.type = type; 
     }
 

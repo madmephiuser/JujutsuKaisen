@@ -25,11 +25,11 @@ public class MissionRenderer {
             System.out.println("\nИспользованные техники:");
             for (Technique t : m.getTechniques()) {
                 String ownerName = (t.getOwner() != null) ? t.getOwner().getName() : "Не указан";
-                System.out.println("  " + t.getName() + " тип: " + t.getType() + " Владелец: " + ownerName + " Урон: " + t.getDamage());
+                System.out.println(t.getName() + " тип: " + t.getType() + " Владелец: " + ownerName + " Урон: " + t.getDamage());
             }
         }
-        if (m.getComment() != null) {
-            System.out.println("\nПримечание: " + m.getComment());
+        if (m.getNotes() != null) {
+            System.out.println("\nПримечание: " + m.getNotes());
         }
     }
 }

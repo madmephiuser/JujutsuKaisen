@@ -2,16 +2,13 @@ package com.mycompany.jujutsukaisen;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import enums.SorcererRank;
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Sorcerer {
     private String name;
-    private String rank;
+    private SorcererRank rank;
     
     public Sorcerer() {
         
@@ -27,10 +24,10 @@ public class Sorcerer {
         this.name = name; 
     }
 
-    public String getRank() {
+    public SorcererRank getRank() {
         return rank; 
     }
-    public void setRank(String rank) {
+    public void setRank(SorcererRank rank) {
         this.rank = rank; 
     }
 }

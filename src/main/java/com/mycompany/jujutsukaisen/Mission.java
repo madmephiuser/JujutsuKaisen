@@ -11,15 +11,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import enums.MissionOutcome;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public class Mission {
     private String missionId;
     private String date;
     private String location;
-    private String outcome;
+    private MissionOutcome outcome;
     private long damageCost;
     private Curse curse;
 
@@ -29,16 +29,27 @@ public class Mission {
     @JacksonXmlElementWrapper(localName = "techniques")
     @JacksonXmlProperty(localName = "technique")
     private List<Technique> techniques;
-    @JsonAlias({"comment", "note"})
-    private String comment;
-
+    private String notes;
+    
+    private EconomicAssessment economicAssessment;
+    private CivilianImpact civilianImpact;
+    private EnemyActivity enemyActivity;
+    private EnvironmentConditions environmentConditions;
+    private List<OperationTimeline> operationTimeline;
+    private List<String> operationTags;
+    private List<String> supportUnits;
+    private List<String> recommendations;
+    private List<String> artifactsRecovered;
+    private List<String> evacuationZones;
+    private List<String> statusEffects;
+    
     public Mission() {}
 
     public String getMissionId() {
         return missionId; 
     }
     public void setMissionId(String missionId) {
-        this.missionId = missionId; 
+        this.missionId = missionId;
     }
 
     public String getDate() {
@@ -54,10 +65,10 @@ public class Mission {
         this.location = location; 
     }
 
-    public String getOutcome() {
+    public MissionOutcome getOutcome() {
         return outcome; 
     }
-    public void setOutcome(String outcome) {
+    public void setOutcome(MissionOutcome outcome) {
         this.outcome = outcome; 
     }
     public long getDamageCost() {
@@ -87,10 +98,82 @@ public class Mission {
         this.techniques = techniques; 
     }
 
-    public String getComment() {
-        return comment; 
+    public String getNotes() {
+        return notes; 
     }
-    public void setComment(String comment) {
-        this.comment = comment; 
+    public void setComment(String notes) {
+        this.notes = notes; 
+    }
+    public EconomicAssessment getEconomicAssessment() {
+        return economicAssessment; 
+    }
+    public void setEconomicAssessment(EconomicAssessment economicAssessment) {
+        this.economicAssessment = economicAssessment; 
+    }
+
+    public CivilianImpact getCivilianImpact() {
+        return civilianImpact; 
+    }
+    public void setCivilianImpact(CivilianImpact civilianImpact) {
+        this.civilianImpact = civilianImpact; 
+    }
+
+    public EnemyActivity getEnemyActivity() {
+        return enemyActivity; 
+    }
+    public void setEnemyActivity(EnemyActivity enemyActivity) {
+        this.enemyActivity = enemyActivity; 
+    }
+
+    public EnvironmentConditions getEnvironmentConditions() {
+        return environmentConditions; 
+    }
+    public void setEnvironmentConditions(EnvironmentConditions environmentConditions) {
+        this.environmentConditions = environmentConditions; 
+    }
+    public List<OperationTimeline> getOperationTimeline() {
+        return operationTimeline; 
+    }
+    public void setOperationTimeline(List<OperationTimeline> operationTimeline) {
+        this.operationTimeline = operationTimeline; 
+    }
+    public List<String> getOperationTags() {
+        return operationTags; 
+    }
+    public void setOperationTags(List<String> operationTags) {
+        this.operationTags = operationTags;
+    }
+
+    public List<String> getSupportUnits() {
+        return supportUnits;
+    }
+    public void setSupportUnits(List<String> supportUnits) {
+        this.supportUnits = supportUnits;
+    }
+    public List<String> getRecommendations() {
+        return recommendations; }
+    public void setRecommendations(List<String> recommendations) {
+        this.recommendations = recommendations; 
+    }
+
+    public List<String> getArtifactsRecovered() {
+        return artifactsRecovered; 
+    }
+    public void setArtifactsRecovered(List<String> artifactsRecovered) { 
+        this.artifactsRecovered = artifactsRecovered; 
+    }
+
+    public List<String> getEvacuationZones() { 
+        return evacuationZones; 
+    }
+    public void setEvacuationZones(List<String> evacuationZones) { 
+        this.evacuationZones = evacuationZones; 
+    }
+
+    public List<String> getStatusEffects() {
+        return statusEffects; 
+    }
+    public void setStatusEffects(List<String> statusEffects) {
+        this.statusEffects = statusEffects; 
     }
 }

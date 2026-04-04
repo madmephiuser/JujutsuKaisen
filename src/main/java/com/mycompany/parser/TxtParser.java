@@ -42,21 +42,21 @@ public class TxtParser implements MissionParser {
                     case "missionId" -> mission.setMissionId(value);
                     case "date" -> mission.setDate(value);
                     case "location" -> mission.setLocation(value);
-                    case "outcome" -> mission.setOutcome(value);
+                    //case "outcome" -> mission.setOutcome(value);
                     case "damageCost" -> mission.setDamageCost(Long.parseLong(value));
                     case "note", "comment" -> mission.setComment(value);
                 }
 
                 if (key.startsWith("curse.")) {
                     if (key.endsWith(".name")) mission.getCurse().setName(value);
-                    if (key.endsWith(".threatLevel")) mission.getCurse().setThreatLevel(value);
+                    //if (key.endsWith(".threatLevel")) mission.getCurse().setThreatLevel(value);
                 }
 
                 if (key.startsWith("sorcerer[")) {
                     int index = extractIndex(key);
                     while (mission.getSorcerers().size() <= index) mission.getSorcerers().add(new Sorcerer());
                     if (key.endsWith(".name")) mission.getSorcerers().get(index).setName(value);
-                    if (key.endsWith(".rank")) mission.getSorcerers().get(index).setRank(value);
+                    //if (key.endsWith(".rank")) mission.getSorcerers().get(index).setRank(value);
                 }
 
                 if (key.startsWith("technique[")) {
@@ -68,7 +68,7 @@ public class TxtParser implements MissionParser {
                     Technique currentTech = mission.getTechniques().get(index);
                     
                     if (key.endsWith(".name")) currentTech.setName(value);
-                    if (key.endsWith(".type")) currentTech.setType(value);
+                    //if (key.endsWith(".type")) currentTech.setType(value);
                     if (key.endsWith(".damage")) currentTech.setDamage(Long.parseLong(value));
                     
                     if (key.endsWith(".owner")) {
