@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.mycompany.parser;
 
 public class FactoryParser {
@@ -16,9 +13,8 @@ public class FactoryParser {
             return new TxtParser();
         } else if (lowerPath.endsWith(".yaml") || lowerPath.endsWith(".yml")) {
             return new YamlParser();
-        }
-        else {
-            return null;
+        }else {
+            return new DifParser();
         }
     }
 }

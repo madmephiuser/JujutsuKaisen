@@ -2,7 +2,7 @@
 package enums;
 
 public enum Visibility {
-    CLEAR, POOR;
+    CLEAR, LOW, POOR;
     
     public static Visibility fromString(String t) {
         try {

@@ -9,7 +9,7 @@ import enums.TechniqueType;
 public class Technique {
     private String name;
     private TechniqueType type;
-    private Sorcerer owner; 
+    private String owner; 
     private long damage;
 
     public Technique() {}
@@ -28,10 +28,10 @@ public class Technique {
         this.type = type; 
     }
 
-    public Sorcerer getOwner() {
+    public String getOwner() {
         return owner; 
     }
-    public void setOwner(Sorcerer owner) {
+    public void setOwner(String owner) {
         this.owner = owner; 
     }
 

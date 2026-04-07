@@ -3,11 +3,12 @@ package com.mycompany.jujutsukaisen;
 
 import enums.Mobility;
 import enums.RiskLevel;
+import java.util.List;
 
 public class EnemyActivity {
     private String behaviorType;
-    private String targetPriority; 
-    private String attackPatterns; 
+    private List<String> targetPriority; 
+    private List<String> attackPatterns; 
     private Mobility mobility; 
     private RiskLevel escalationRisk; 
 
@@ -18,17 +19,17 @@ public class EnemyActivity {
         this.behaviorType = behaviorType; 
     }
 
-    public String getTargetPriority() {
+    public List<String> getTargetPriority() {
         return targetPriority; 
     }
-    public void setTargetPriority(String targetPriority) {
+    public void setTargetPriority(List<String> targetPriority) {
         this.targetPriority = targetPriority; 
     }
 
-    public String getAttackPatterns() {
+    public List<String> getAttackPatterns() {
         return attackPatterns; 
     }
-    public void setAttackPatterns(String attackPatterns) {
+    public void setAttackPatterns(List<String> attackPatterns) {
         this.attackPatterns = attackPatterns; 
     }
 

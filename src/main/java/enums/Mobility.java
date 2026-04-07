@@ -5,7 +5,7 @@
 package enums;
 
 public enum Mobility {
-    LOW, STATIC, HIGH;
+    LOW, STATIC, HIGH ;
     
     public static Mobility fromString(String t) {
         try {

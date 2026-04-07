@@ -4,32 +4,30 @@
  */
 package com.mycompany.parser;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.mycompany.jujutsukaisen.Mission;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
-public class XmlParser implements MissionParser{
-    private final XmlMapper xmlMapper = new XmlMapper();
+
+public class XmlParser implements MissionParser {
+    private final XmlMapper xmlMapper;
+
+    public XmlParser() {
+        this.xmlMapper = new XmlMapper();
+        this.xmlMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     public Mission parse(String filePath) {
         try {
             File file = new File(filePath);
-
-            if (!file.exists()) {
-                System.out.println("Ошибка файл не найден");
-                return null;
-            }
-            String content = Files.readString(file.toPath()).trim();
-            if (!content.startsWith("<")) {
-                System.out.println("Ошибка неверный формат файла");
-                return null;
-            }
+            if (!file.exists()) return null;
             return xmlMapper.readValue(file, Mission.class);  
             
-        } catch (IOException e) {
-            System.out.println("Ошибка в структуре XML " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Ошибка в структуре XML: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }

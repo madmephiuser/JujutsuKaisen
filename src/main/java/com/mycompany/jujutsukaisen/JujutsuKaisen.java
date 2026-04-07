@@ -3,48 +3,21 @@ package com.mycompany.jujutsukaisen;
 
 import com.mycompany.parser.*;
 import java.io.UnsupportedEncodingException;
-import java.util.Scanner;
+import javax.swing.JFileChooser;
 
 public class JujutsuKaisen {
     public static void main(String[] args) throws UnsupportedEncodingException {
         System.setOut(new java.io.PrintStream(System.out, true, "UTF-8"));
-        Scanner scanner = new Scanner(System.in);
+        JFileChooser chooser = new JFileChooser();
         
-        while (true) {
-            System.out.println("\nВведите путь к файлу миссии (или 'exit' для выхода):");
-            String path = scanner.nextLine().trim();
-
-            if (path.equalsIgnoreCase("exit")) {
-                System.out.println("Выход");
-                break;
-            }
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            String path = chooser.getSelectedFile().getAbsolutePath();
 
             MissionParser parser = FactoryParser.getParser(path);
-            if (parser == null) {
-                System.out.println("Ошибка неподдерживаемый формат файла");
-                continue;
-            }
-            Mission mission = parser.parse(path);
-            if (mission != null) {
-                linkST(mission);
-                MissionRenderer.showMission(mission);
-            } else {
-                System.out.println("Ошибка не удалось загрузить данные.");
-            }
-        }
-    }
-
-    private static void linkST(Mission m) {
-        if (m.getTechniques() == null || m.getSorcerers() == null) return;
-
-        for (Technique tech : m.getTechniques()) {
-            if (tech.getOwner() != null) {
-                String nameToFind = tech.getOwner().getName();
-                for (Sorcerer s : m.getSorcerers()) {
-                    if (s.getName().equals(nameToFind)) {
-                        tech.setOwner(s); 
-                        break;
-                    }
+            if (parser != null) {
+                Mission mission = parser.parse(path);
+                if (mission != null) {
+                    MissionRenderer.showMission(mission);
                 }
             }
         }

@@ -1,14 +1,7 @@
 package com.mycompany.jujutsukaisen;
 
 
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
-
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import enums.MissionOutcome;
@@ -101,7 +94,7 @@ public class Mission {
     public String getNotes() {
         return notes; 
     }
-    public void setComment(String notes) {
+    public void setNotes(String notes) {
         this.notes = notes; 
     }
     public EconomicAssessment getEconomicAssessment() {
