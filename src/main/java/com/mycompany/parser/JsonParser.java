@@ -14,7 +14,7 @@ public class JsonParser extends AbstractMissionParser {
     @Override
     protected boolean doCheck(String filePath) {
         String line = getFirstLine(filePath);
-        return line.startsWith("{") || line.startsWith("[");
+        return line.startsWith("{");
     }
 
     @Override

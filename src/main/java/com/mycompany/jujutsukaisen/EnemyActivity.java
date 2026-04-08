@@ -3,12 +3,13 @@ package com.mycompany.jujutsukaisen;
 
 import enums.Mobility;
 import enums.RiskLevel;
+import java.util.ArrayList;
 import java.util.List;
 
 public class EnemyActivity {
     private String behaviorType;
-    private List<String> targetPriority; 
-    private List<String> attackPatterns; 
+    private List<String> attackPatterns = new ArrayList<>(); 
+    private List<String> targetPriority = new ArrayList<>(); 
     private Mobility mobility; 
     private RiskLevel escalationRisk; 
 
