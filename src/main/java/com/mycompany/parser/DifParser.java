@@ -6,10 +6,16 @@ import enums.*;
 import java.io.*;
 import java.util.ArrayList;
 
-public class DifParser implements MissionParser {
-
+public class DifParser extends AbstractMissionParser {
+    
     @Override
-    public Mission parse(String filePath) {
+    protected boolean doCheck(String filePath) {
+        String firstLine = getFirstLine(filePath);
+        return firstLine != null && firstLine.contains("|");
+    }
+    
+    @Override
+    public Mission doParse(String filePath) {
         Mission mission = new Mission();
         mission.setSorcerers(new ArrayList<>());
         mission.setTechniques(new ArrayList<>());

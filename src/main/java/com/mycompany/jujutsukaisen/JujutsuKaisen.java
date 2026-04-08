@@ -14,11 +14,10 @@ public class JujutsuKaisen {
             String path = chooser.getSelectedFile().getAbsolutePath();
 
             MissionParser parser = FactoryParser.getParser(path);
-            if (parser != null) {
-                Mission mission = parser.parse(path);
-                if (mission != null) {
-                    MissionRenderer.showMission(mission);
-                }
+            Mission mission = parser.parse(path);
+            
+            if (mission != null) {
+                MissionRenderer.showMission(mission);
             }
         }
     }

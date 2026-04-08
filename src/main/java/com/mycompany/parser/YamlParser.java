@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.mycompany.jujutsukaisen.Mission;
 import java.io.File;
-import java.io.IOException;
 
-public class YamlParser implements MissionParser{
+public class YamlParser extends AbstractMissionParser{
     
     private final YAMLMapper mapper;
 
@@ -17,14 +16,15 @@ public class YamlParser implements MissionParser{
         this.mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
     }
     @Override
-    public Mission parse(String filePath) {
+    protected boolean doCheck(String filePath) {
+        String line = getFirstLine(filePath);
+        return (!line.startsWith("<") && !line.startsWith("{") && line.contains(":"));
+    }
+
+    @Override
+    protected Mission doParse(String filePath) {
         try {
-            File file = new File(filePath);
-            
-            if (!file.exists()) {
-                throw new IOException("Файл не найден: " + filePath);
-            }
-            return mapper.readValue(file, Mission.class);
+            return mapper.readValue(new File(filePath), Mission.class);
         } catch (Exception e) {
             System.err.println("Ошибка YAML: " + e.getMessage());
             return null;

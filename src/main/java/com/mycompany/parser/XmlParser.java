@@ -10,7 +10,7 @@ import com.mycompany.jujutsukaisen.Mission;
 import java.io.File;
 
 
-public class XmlParser implements MissionParser {
+public class XmlParser extends AbstractMissionParser {
     private final XmlMapper xmlMapper;
 
     public XmlParser() {
@@ -19,15 +19,17 @@ public class XmlParser implements MissionParser {
         this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public Mission parse(String filePath) {
+    @Override
+    protected boolean doCheck(String filePath) {
+        return getFirstLine(filePath).startsWith("<");
+    }
+
+    @Override
+    protected Mission doParse(String filePath) {
         try {
-            File file = new File(filePath);
-            if (!file.exists()) return null;
-            return xmlMapper.readValue(file, Mission.class);  
-            
+            return xmlMapper.readValue(new File(filePath), Mission.class);
         } catch (Exception e) {
-            System.out.println("Ошибка в структуре XML: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Ошибка XML: " + e.getMessage());
             return null;
         }
     }

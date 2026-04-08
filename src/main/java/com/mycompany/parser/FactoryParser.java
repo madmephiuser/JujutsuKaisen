@@ -2,19 +2,14 @@
 package com.mycompany.parser;
 
 public class FactoryParser {
-  public static MissionParser getParser(String filePath) {
-        String lowerPath = filePath.toLowerCase();
-        
-        if (lowerPath.endsWith(".json")) {
-            return new JsonParser();
-        } else if (lowerPath.endsWith(".xml")) {
-            return new XmlParser();
-        } else if (lowerPath.endsWith(".txt")) {
-            return new TxtParser();
-        } else if (lowerPath.endsWith(".yaml") || lowerPath.endsWith(".yml")) {
-            return new YamlParser();
-        }else {
-            return new DifParser();
-        }
+    public static MissionParser getParser(String filePath) {
+        AbstractMissionParser json = new JsonParser();
+        AbstractMissionParser xml = new XmlParser();
+        AbstractMissionParser yaml = new YamlParser();
+        AbstractMissionParser txt = new TxtParser();
+        AbstractMissionParser dif = new DifParser();
+
+        json.setNext(xml).setNext(yaml).setNext(txt).setNext(dif);
+        return json;
     }
 }

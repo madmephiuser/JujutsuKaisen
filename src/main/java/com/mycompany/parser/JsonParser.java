@@ -7,28 +7,22 @@ package com.mycompany.parser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.jujutsukaisen.Mission;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
-
-public class JsonParser implements MissionParser {
+public class JsonParser extends AbstractMissionParser {
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public Mission parse(String filePath) {
+    @Override
+    protected boolean doCheck(String filePath) {
+        String line = getFirstLine(filePath);
+        return line.startsWith("{") || line.startsWith("[");
+    }
+
+    @Override
+    protected Mission doParse(String filePath) {
         try {
-            File file = new File(filePath);
-            String content = Files.readString(file.toPath()).trim();
-            if (!file.exists()) {
-                System.out.println("Ошибка файл не найден");
-                return null;
-            }
-            if (!content.startsWith("{")) {
-                System.out.println("Ошибка неверный формат файла");
-                return null;
-            }
-            return mapper.readValue(file, Mission.class);
-        } catch (IOException e) {
-            System.out.println("Ошибка в структуре JSON " + e.getMessage());
+            return mapper.readValue(new File(filePath), Mission.class);
+        } catch (Exception e) {
+            System.err.println("Ошибка JSON: " + e.getMessage());
             return null;
         }
     }

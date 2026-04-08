@@ -1,24 +1,22 @@
 
 package com.mycompany.parser;
 
-import com.mycompany.jujutsukaisen.CivilianImpact;
-import com.mycompany.jujutsukaisen.Curse;
-import com.mycompany.jujutsukaisen.EconomicAssessment;
-import com.mycompany.jujutsukaisen.EnemyActivity;
-import com.mycompany.jujutsukaisen.EnvironmentConditions;
-import com.mycompany.jujutsukaisen.Mission;
-import com.mycompany.jujutsukaisen.OperationTimeline;
-import com.mycompany.jujutsukaisen.Sorcerer;
-import com.mycompany.jujutsukaisen.Technique;
+import com.mycompany.jujutsukaisen.*;
 import enums.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 
-public class TxtParser implements MissionParser {
-
+public class TxtParser extends AbstractMissionParser {
+    
     @Override
-    public Mission parse(String path) {
+    protected boolean doCheck(String filePath) {
+        String line = getFirstLine(filePath);
+        return line.startsWith("[");
+    }
+    
+    @Override
+    public Mission doParse(String filePath) {
         Mission m = new Mission();
         m.setSorcerers(new ArrayList<>());
         m.setTechniques(new ArrayList<>());
@@ -30,7 +28,7 @@ public class TxtParser implements MissionParser {
         m.setEvacuationZones(new ArrayList<>());
         m.setStatusEffects(new ArrayList<>());
 
-        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             String currentSection = "";
 
