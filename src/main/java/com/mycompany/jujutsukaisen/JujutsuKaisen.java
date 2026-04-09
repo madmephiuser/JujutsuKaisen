@@ -17,7 +17,8 @@ public class JujutsuKaisen {
             Mission mission = parser.parse(path);
             
             if (mission != null) {
-                MissionRenderer.showMission(mission);
+                MissionDisplay renderer = new MissionRenderer();
+                renderer.display(mission);
             }
         }
     }

@@ -5,9 +5,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class MissionRenderer {
+public class MissionRenderer implements MissionDisplay {
 
-    public static void showMission(Mission m) {
+    @Override
+    public void display (Mission m) {
         if (m == null) return;
         JFrame frame = new JFrame("Отчет по миссии: " + m.getMissionId());
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -106,15 +107,15 @@ public class MissionRenderer {
         frame.setVisible(true);
     }
 
-    private static void renderField(StringBuilder sb, String label, Object value) {
+    private void renderField(StringBuilder sb, String label, Object value) {
         if (value != null && !value.toString().isEmpty()) sb.append(label).append(value).append("\n");
     }
 
-    private static void renderList(StringBuilder sb, String label, List<String> list) {
+    private void renderList(StringBuilder sb, String label, List<String> list) {
         if (list != null && !list.isEmpty()) sb.append(label).append(String.join(", ", list)).append("\n");
     }
 
-    private static boolean hasData(List<?> list) {
+    private boolean hasData(List<?> list) {
         return list != null && !list.isEmpty();
     }
 }
