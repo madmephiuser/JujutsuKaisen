@@ -4,6 +4,9 @@ package com.mycompany.jujutsukaisen;
 import com.mycompany.parser.*;
 import java.io.UnsupportedEncodingException;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import validate.ControlValidator;
+import validate.ValidationException;
 
 public class JujutsuKaisen {
     public static void main(String[] args) throws UnsupportedEncodingException {
@@ -17,8 +20,16 @@ public class JujutsuKaisen {
             Mission mission = parser.parse(path);
             
             if (mission != null) {
-                MissionDisplay renderer = new MissionRenderer();
-                renderer.display(mission);
+                try {
+                    ControlValidator validator = new ControlValidator();
+                    validator.validate(mission);
+                    MissionDisplay renderer = new MissionRenderer();
+                    renderer.display(mission);
+                }catch (ValidationException e){
+                    JOptionPane.showMessageDialog(null, e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+                }
+            }else {
+                JOptionPane.showMessageDialog(null, "Не удалось прочитать файл или формат не поддерживается.", "Ошибка парсинга", JOptionPane.WARNING_MESSAGE);
             }
         }
     }
