@@ -24,6 +24,7 @@ public class JujutsuKaisen {
                     ControlValidator validator = new ControlValidator();
                     validator.validate(mission);
                     MissionDisplay renderer = new MissionRenderer();
+                    renderer = new ShortReportDecorator(renderer);
                     renderer.display(mission);
                 }catch (ValidationException e){
                     JOptionPane.showMessageDialog(null, e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
