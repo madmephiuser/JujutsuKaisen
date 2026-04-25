@@ -8,24 +8,22 @@ import java.util.List;
 public class MissionRenderer implements MissionDisplay {
 
     @Override
-    public void display (Mission m) {
+    public void display(Mission m) {
         if (m == null) return;
-        JFrame frame = new JFrame("Отчет по миссии: " + m.getMissionId());
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         StringBuilder sb = new StringBuilder();
 
         sb.append("ID МИССИИ: ").append(m.getMissionId()).append("\n");
         sb.append("Дата: ").append(m.getDate()).append("\n");
         sb.append("Локация: ").append(m.getLocation()).append("\n");
         sb.append("Итог: ").append(m.getOutcome()).append("\n");
-        renderField(sb, "Общая оценка ущерба: ", m.getDamageCost());
+        renderNumericField(sb, "Общая оценка ущерба: ", m.getDamageCost());
 
         if (m.getCurse() != null) {
             sb.append("\nПроклятия\n");
             sb.append("Название: ").append(m.getCurse().getName()).append("\n");
             sb.append("Уровень угрозы: ").append(m.getCurse().getThreatLevel()).append("\n");
         }
-
+        
         if (hasData(m.getSorcerers())) {
             sb.append("\nУчастники\n");
             for (Sorcerer s : m.getSorcerers()) {
@@ -34,88 +32,121 @@ public class MissionRenderer implements MissionDisplay {
                 sb.append("\n");
             }
         }
-
+        
         if (hasData(m.getTechniques())) {
             sb.append("\nТехники\n");
             for (Technique t : m.getTechniques()) {
                 sb.append("- ").append(t.getName()).append(" (").append(t.getType()).append(")\n");
                 renderField(sb, "  Владелец: ", t.getOwner());
-                renderField(sb, "  Урон: ", t.getDamage());
+                renderNumericField(sb, "  Урон: ", t.getDamage());
+            }
+        }
+        
+        EconomicAssessment ec = m.getEconomicAssessment();
+        if (ec != null) {
+            StringBuilder ecSb = new StringBuilder();
+            renderNumericField(ecSb, "Общий ущерб: ", ec.getTotalDamageCost());
+            renderNumericField(ecSb, "Ущерб инфраструктуре: ", ec.getInfrastructureDamage());
+            renderNumericField(ecSb, "Коммерческий ущерб: ", ec.getCommercialDamage());
+            renderNumericField(ecSb, "Ущерб транспорту: ", ec.getTransportDamage());
+            renderNumericField(ecSb, "Время восстановления (дн): ", ec.getRecoveryEstimateDays());
+            if (ec.getInsuranceCovered() != null) {
+                ecSb.append("Страховка: ").append(ec.getInsuranceCovered() ? "Да" : "Нет").append("\n");
+            }
+            if (ecSb.length() > 0) {
+                sb.append("\nЭкономическая оценка ущерба\n").append(ecSb);
             }
         }
 
-        if (m.getEconomicAssessment() != null) {
-            EconomicAssessment ec = m.getEconomicAssessment();
-            sb.append("\nЭкономическая оценка ущерба\n");
-            renderField(sb, "Общий ущерб: ", ec.getTotalDamageCost());
-            renderField(sb, "Ущерб инфраструктуре: ", ec.getInfrastructureDamage());
-            renderField(sb, "Коммерческий ущерб: ", ec.getCommercialDamage());
-            renderField(sb, "Ущерб транспорту: ", ec.getTransportDamage());
-            renderField(sb, "Время восстановления: ", ec.getRecoveryEstimateDays());
-            if (ec.getInsuranceCovered() != null) sb.append("Страховка: ").append(ec.getInsuranceCovered() ? "Да" : "Нет").append("\n");
+        CivilianImpact ci = m.getCivilianImpact();
+        if (ci != null) {
+            StringBuilder ciSb = new StringBuilder();
+            renderNumericField(ciSb, "Эвакуировано: ", ci.getEvacuated());
+            renderNumericField(ciSb, "Пострадавшие: ", ci.getInjured());
+            renderNumericField(ciSb, "Пропавшие: ", ci.getMissing());
+            renderField(ciSb, "Риск раскрытия: ", ci.getPublicExposureRisk());
+            if (ciSb.length() > 0) {
+                sb.append("\nВлияние на граждан\n").append(ciSb);
+            }
         }
 
-        if (m.getCivilianImpact() != null) {
-            CivilianImpact ci = m.getCivilianImpact();
-            sb.append("\nВлияние на граждан\n");
-            renderField(sb, "Эвакуировано: ", ci.getEvacuated());
-            renderField(sb, "Пострадавшие: ", ci.getInjured());
-            renderField(sb, "Пропавшие: ", ci.getMissing());
-            renderField(sb, "Риск раскрытия: ", ci.getPublicExposureRisk());
+        EnemyActivity en = m.getEnemyActivity();
+        if (en != null) {
+            StringBuilder enSb = new StringBuilder();
+            renderField(enSb, "Тип поведения: ", en.getBehaviorType());
+            renderList(enSb, "Приоритет целей: ", en.getTargetPriority());
+            renderList(enSb, "Паттерны атак: ", en.getAttackPatterns());
+            renderField(enSb, "Мобильность: ", en.getMobility());
+            renderField(enSb, "Риск эскалации: ", en.getEscalationRisk());
+            if (enSb.length() > 0) {
+                sb.append("\nПоведение противника\n").append(enSb);
+            }
         }
 
-        if (m.getEnemyActivity() != null) {
-            EnemyActivity en = m.getEnemyActivity();
-            sb.append("\nПоведение противника\n");
-            renderField(sb, "Тип поведения: ", en.getBehaviorType());
-            renderList(sb, "Приоритет целей: ", en.getTargetPriority());
-            renderList(sb, "Паттерны атак: ", en.getAttackPatterns());
-            renderField(sb, "Мобильность: ", en.getMobility());
-            renderField(sb, "Риск эскалации: ", en.getEscalationRisk());
-        }
-
-        if (m.getEnvironmentConditions() != null) {
-            EnvironmentConditions env = m.getEnvironmentConditions();
-            sb.append("\nУсловия среды\n");
-            renderField(sb, "Погода: ", env.getWeather());
-            renderField(sb, "Время суток: ", env.getTimeOfDay());
-            renderField(sb, "Видимость: ", env.getVisibility());
-            renderField(sb, "Плотность энергии: ", env.getCursedEnergyDensity());
+        EnvironmentConditions env = m.getEnvironmentConditions();
+        if (env != null) {
+            StringBuilder envSb = new StringBuilder();
+            renderField(envSb, "Погода: ", env.getWeather());
+            renderField(envSb, "Время суток: ", env.getTimeOfDay());
+            renderField(envSb, "Видимость: ", env.getVisibility());
+            renderNumericField(envSb, "Плотность энергии: ", env.getCursedEnergyDensity());
+            if (envSb.length() > 0) {
+                sb.append("\nУсловия среды\n").append(envSb);
+            }
         }
 
         if (hasData(m.getOperationTimeline())) {
             sb.append("\nХронология\n");
             for (OperationTimeline ot : m.getOperationTimeline()) {
-                sb.append(ot.getTimestamp()).append(" | ").append(ot.getType()).append(": ").append(ot.getDescription()).append("\n");
+                sb.append(ot.getTimestamp()).append(" | ")
+                  .append(ot.getType()).append(": ")
+                  .append(ot.getDescription()).append("\n");
             }
         }
-        
+
         renderList(sb, "Теги: ", m.getOperationTags());
         renderList(sb, "Вспомогательные силы: ", m.getSupportUnits());
         renderList(sb, "Рекомендации: ", m.getRecommendations());
         renderField(sb, "Примечание: ", m.getNotes());
-        renderList(sb, "Артефакты: ", m.getArtifactsRecovered());
+        renderList(sb, "Найденные артефакты: ", m.getArtifactsRecovered());
         renderList(sb, "Зоны эвакуации: ", m.getEvacuationZones());
         renderList(sb, "Эффекты: ", m.getStatusEffects());
 
-        JTextArea ta = new JTextArea(sb.toString());
-        ta.setEditable(false);
-        ta.setMargin(new Insets(10, 10, 10, 10));
-        frame.add(new JScrollPane(ta));
-        frame.setSize(650, 750);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        showGui(m.getMissionId(), sb.toString());
     }
 
     private void renderField(StringBuilder sb, String label, Object value) {
-        if (value != null && !value.toString().isEmpty()) sb.append(label).append(value).append("\n");
+        if (value != null && !value.toString().trim().isEmpty()) {
+            sb.append(label).append(value).append("\n");
+        }
+    }
+
+    private void renderNumericField(StringBuilder sb, String label, Number value) {
+        if (value != null && value.doubleValue() > 0) {
+            sb.append(label).append(value).append("\n");
+        }
     }
 
     private void renderList(StringBuilder sb, String label, List<String> list) {
-        if (list != null && !list.isEmpty()) sb.append(label).append(String.join(", ", list)).append("\n");
+        if (hasData(list)) {
+            sb.append(label).append(String.join(", ", list)).append("\n");
+        }
     }
 
     private boolean hasData(List<?> list) {
         return list != null && !list.isEmpty();
+    }
+
+    private void showGui(String id, String text) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Отчет по миссии: " + id);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            JTextArea ta = new JTextArea(text);
+            ta.setEditable(false);
+            frame.add(new JScrollPane(ta));
+            frame.setSize(650, 800);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
     }
 }

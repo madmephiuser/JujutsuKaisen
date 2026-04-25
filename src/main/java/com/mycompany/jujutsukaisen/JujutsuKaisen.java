@@ -15,8 +15,7 @@ public class JujutsuKaisen {
         
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             String path = chooser.getSelectedFile().getAbsolutePath();
-
-            MissionParser parser = FactoryParser.getParser(path);
+            MissionParser parser = FactoryParser.getParser(); 
             Mission mission = parser.parse(path);
             
             if (mission != null) {
@@ -24,12 +23,11 @@ public class JujutsuKaisen {
                     ControlValidator validator = new ControlValidator();
                     validator.validate(mission);
                     MissionDisplay renderer = new MissionRenderer();
-                    renderer = new ShortReportDecorator(renderer);
-                    renderer.display(mission);
-                }catch (ValidationException e){
-                    JOptionPane.showMessageDialog(null, e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+                    renderer.display(mission);                                        
+                } catch (ValidationException e) {
+                    JOptionPane.showMessageDialog(null, e.getMessage(), "Ошибка валидации", JOptionPane.ERROR_MESSAGE);
                 }
-            }else {
+            } else {
                 JOptionPane.showMessageDialog(null, "Не удалось прочитать файл или формат не поддерживается.", "Ошибка парсинга", JOptionPane.WARNING_MESSAGE);
             }
         }

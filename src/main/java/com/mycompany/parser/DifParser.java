@@ -1,4 +1,3 @@
-
 package com.mycompany.parser;
 
 import com.mycompany.jujutsukaisen.*;
@@ -17,7 +16,7 @@ public class DifParser extends AbstractMissionParser {
     
     @Override
     public Mission doParse(String filePath) {
-        Mission.Builder builder = Mission.builder();
+        Mission mission = new Mission();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -31,135 +30,156 @@ public class DifParser extends AbstractMissionParser {
                 String eventType = tokens[0].toUpperCase();
 
                 switch (eventType) {
-                    case "MISSION_CREATED" -> parseMissionCreated(builder, tokens);
-                    case "CURSE_DETECTED" -> parseCurseDetected(builder, tokens);
-                    case "SORCERER_ASSIGNED" -> parseSorcererAssigned(builder, tokens);
-                    case "TECHNIQUE_USED" -> parseTechniqueUsed(builder, tokens);
-                    case "ECONOMIC_ASSESSMENT" -> parseEconomic(builder, tokens);
-                    case "CIVILIAN_IMPACT" -> parseCivilianImpact(builder, tokens);
-                    case "ENEMY_ACTION" -> parseEnemyAction(builder, tokens);
-                    case "ENVIRONMENT_REPORT" -> parseEnvironment(builder, tokens);
-                    case "TIMELINE_EVENT" -> parseTimelineEvent(builder, tokens);
-                    case "MISSION_RESULT" -> parseMissionResult(builder, tokens);
-                    case "EXTRA_DATA" -> parseExtra(builder, tokens);
+                    case "MISSION_CREATED" -> parseMissionCreated(mission, tokens);
+                    case "CURSE_DETECTED" -> parseCurseDetected(mission, tokens);
+                    case "SORCERER_ASSIGNED" -> parseSorcererAssigned(mission, tokens);
+                    case "TECHNIQUE_USED" -> parseTechniqueUsed(mission, tokens);
+                    case "ECONOMIC_ASSESSMENT" -> parseEconomic(mission, tokens);
+                    case "CIVILIAN_IMPACT" -> parseCivilianImpact(mission, tokens);
+                    case "ENEMY_ACTION" -> parseEnemyAction(mission, tokens);
+                    case "ENVIRONMENT_REPORT" -> parseEnvironment(mission, tokens);
+                    case "TIMELINE_EVENT" -> parseTimelineEvent(mission, tokens);
+                    case "MISSION_RESULT" -> parseMissionResult(mission, tokens);
+                    case "EXTRA_DATA" -> parseExtra(mission, tokens);
                 }
             }
         } catch (Exception e) {
             System.err.println("Ошибка DIF парсера: " + e.getMessage());
         }
-        return builder.build();
-    }
-    private void parseMissionCreated(Mission.Builder b, String[] tokens) {
-        if (tokens.length > 1) b.missionId(tokens[1]);
-        if (tokens.length > 2) b.date(tokens[2]);
-        if (tokens.length > 3) b.location(tokens[3]);
+        return mission;
     }
 
-    private void parseCurseDetected(Mission.Builder b, String[] tokens) {
-        Curse curse = b.getCurse();
-        if (tokens.length > 1) curse.setName(tokens[1]);
-        if (tokens.length > 2) curse.setThreatLevel(ThreatLevel.fromString(tokens[2]));
+    private void parseMissionCreated(Mission m, String[] tokens) {
+        if (tokens.length > 1) m.setMissionId(tokens[1]);
+        if (tokens.length > 2) m.setDate(tokens[2]);
+        if (tokens.length > 3) m.setLocation(tokens[3]);
     }
 
-    private void parseSorcererAssigned(Mission.Builder b, String[] tokens) {
+    private void parseCurseDetected(Mission m, String[] tokens) {
+        if (m.getCurse() == null) m.setCurse(new Curse());
+        if (tokens.length > 1) m.getCurse().setName(tokens[1]);
+        if (tokens.length > 2) m.getCurse().setThreatLevel(ThreatLevel.fromString(tokens[2]));
+    }
+
+    private void parseSorcererAssigned(Mission m, String[] tokens) {
         if (tokens.length > 2) {
             Sorcerer s = new Sorcerer(tokens[1]);
             s.setRank(SorcererRank.fromString(tokens[2]));
-            b.addSorcerer(s);
+            m.getSorcerers().add(s);
         }
     }
 
-    private void parseTechniqueUsed(Mission.Builder b, String[] tokens) {
+    private void parseTechniqueUsed(Mission m, String[] tokens) {
         if (tokens.length > 4) {
             Technique t = new Technique();
             t.setName(tokens[1]);
             t.setType(TechniqueType.fromString(tokens[2]));
             t.setOwner(tokens[3]);
             t.setDamage(parseLong(tokens[4]));
-            b.addTechnique(t);
+            m.getTechniques().add(t);
         }
     }
 
-    private void parseEconomic(Mission.Builder b, String[] tokens) {
-        EconomicAssessment ec = b.getEconomicAssessment();
-        for (int i = 1; i < tokens.length; i++) {
-            String[] kv = tokens[i].split("=", 2);
-            if (kv.length < 2) continue;
-            String val = kv[1].trim();
-            switch (kv[0].trim()) {
-                case "total" -> ec.setTotalDamageCost(parseDouble(val));
-                case "infrastructure" -> ec.setInfrastructureDamage(parseDouble(val));
-                case "recovery" -> ec.setRecoveryEstimateDays(Integer.parseInt(val));
-                case "insurance" -> ec.setInsuranceCovered(Boolean.parseBoolean(val));
-            }
-        }
-    }
-
-    private void parseCivilianImpact(Mission.Builder b, String[] tokens) {
-        CivilianImpact ci = b.getCivilianImpact();
-        for (int i = 1; i < tokens.length; i++) {
-            String[] kv = tokens[i].split("=", 2);
-            if (kv.length < 2) continue;
-            String val = kv[1].trim();
-            switch (kv[0].trim()) {
-                case "evacuated" -> ci.setEvacuated(Integer.parseInt(val));
-                case "injured" -> ci.setInjured(Integer.parseInt(val));
-                case "missing" -> ci.setMissing(Integer.parseInt(val));
-            }
-        }
-    }
-
-    private void parseEnemyAction(Mission.Builder b, String[] tokens) {
-        EnemyActivity ea = b.getEnemyActivity();
-        if (tokens.length > 1) ea.setBehaviorType(tokens[1]);
-        if (tokens.length > 2) ea.getAttackPatterns().add(tokens[2]);
-        if (tokens.length > 3) ea.getTargetPriority().add(tokens[3]);
-        if (tokens.length > 4) ea.setMobility(Mobility.fromString(tokens[4]));
-        if (tokens.length > 5) ea.setEscalationRisk(RiskLevel.fromString(tokens[5]));
-    }
-
-    private void parseEnvironment(Mission.Builder b, String[] tokens) {
-        EnvironmentConditions env = b.getEnvironmentConditions();
-        if (tokens.length > 1) env.setWeather(tokens[1]);
-        if (tokens.length > 2) env.setTimeOfDay(tokens[2]);
-        if (tokens.length > 3) env.setVisibility(Visibility.fromString(tokens[3]));
-        if (tokens.length > 4) env.setCursedEnergyDensity(parseDouble(tokens[4]));
-    }
-
-    private void parseTimelineEvent(Mission.Builder b, String[] tokens) {
-        if (tokens.length > 3) {
-            OperationTimeline event = new OperationTimeline();
-            event.setTimestamp(tokens[1]);
-            event.setType(tokens[2]);
-            event.setDescription(tokens[3]);
-            b.addTimeline(event);
-        }
-    }
-
-    private void parseMissionResult(Mission.Builder b, String[] tokens) {
-        if (tokens.length > 1) b.outcome(MissionOutcome.fromString(tokens[1]));
-        if (tokens.length > 2) {
-            String costRaw = tokens[2].contains("=") ? tokens[2].split("=")[1] : tokens[2];
-            b.damageCost(parseLong(costRaw));
-        }
-    }
-
-    private void parseExtra(Mission.Builder b, String[] tokens) {
+    private void parseEconomic(Mission m, String[] tokens) {
+        if (m.getEconomicAssessment() == null) m.setEconomicAssessment(new EconomicAssessment());
+        EconomicAssessment ec = m.getEconomicAssessment();
         for (int i = 1; i < tokens.length; i++) {
             String[] kv = tokens[i].split("=", 2);
             if (kv.length < 2) continue;
             String key = kv[0].trim();
             String val = kv[1].trim();
             switch (key) {
-                case "tags" -> splitList(val).forEach(b::addTag);
-                case "support" -> splitList(val).forEach(b::addSupportUnit);
-                case "artifacts" -> splitList(val).forEach(b::addArtifact);
-                case "notes" -> b.notes(val);
+                case "total" -> ec.setTotalDamageCost(parseDouble(val));
+                case "infrastructure" -> ec.setInfrastructureDamage(parseDouble(val));
+                case "commercial" -> ec.setCommercialDamage(parseDouble(val));
+                case "transport" -> ec.setTransportDamage(parseDouble(val));
+                case "recovery" -> ec.setRecoveryEstimateDays(Integer.parseInt(val));
+                case "insurance" -> ec.setInsuranceCovered(Boolean.parseBoolean(val));
             }
         }
     }
+
+    private void parseCivilianImpact(Mission m, String[] tokens) {
+        for (int i = 1; i < tokens.length; i++) {
+            String[] kv = tokens[i].split("=", 2);
+            if (kv.length < 2) continue;
+
+            String key = kv[0].trim();
+            String val = kv[1].trim();
+
+            if (!val.isEmpty()) { 
+                if (m.getCivilianImpact() == null) m.setCivilianImpact(new CivilianImpact());
+                CivilianImpact ci = m.getCivilianImpact();
+
+                switch (key) {
+                    case "evacuated" -> ci.setEvacuated(Integer.parseInt(val));
+                    case "injured" -> ci.setInjured(Integer.parseInt(val));
+                    case "missing" -> ci.setMissing(Integer.parseInt(val));
+                    case "risk" -> ci.setPublicExposureRisk(val);
+                }
+            }
+        }
+}
+
+    private void parseEnemyAction(Mission m, String[] tokens) {
+        if (tokens.length > 1) {
+            if (m.getEnemyActivity() == null) m.setEnemyActivity(new EnemyActivity());
+            EnemyActivity ea = m.getEnemyActivity();
+
+            if (tokens.length > 1) ea.setBehaviorType(tokens[1]);
+            if (tokens.length > 2) ea.getAttackPatterns().addAll(splitList(tokens[2]));
+            if (tokens.length > 3) ea.getTargetPriority().addAll(splitList(tokens[3]));
+            if (tokens.length > 4) ea.setMobility(Mobility.fromString(tokens[4]));
+            if (tokens.length > 5) ea.setEscalationRisk(RiskLevel.fromString(tokens[5]));
+        }
+    }
+
+    private void parseEnvironment(Mission m, String[] tokens) {
+        if (m.getEnvironmentConditions() == null) m.setEnvironmentConditions(new EnvironmentConditions());
+        EnvironmentConditions env = m.getEnvironmentConditions();
+        if (tokens.length > 1) env.setWeather(tokens[1]);
+        if (tokens.length > 2) env.setTimeOfDay(tokens[2]);
+        if (tokens.length > 3) env.setVisibility(Visibility.fromString(tokens[3]));
+        if (tokens.length > 4) env.setCursedEnergyDensity(parseDouble(tokens[4]));
+    }
+
+    private void parseTimelineEvent(Mission m, String[] tokens) {
+        if (tokens.length > 3) {
+            OperationTimeline event = new OperationTimeline();
+            event.setTimestamp(tokens[1]);
+            event.setType(tokens[2]);
+            event.setDescription(tokens[3]);
+            m.getOperationTimeline().add(event);
+        }
+    }
+
+    private void parseMissionResult(Mission m, String[] tokens) {
+        if (tokens.length > 1) m.setOutcome(MissionOutcome.fromString(tokens[1]));
+        if (tokens.length > 2) {
+            String costRaw = tokens[2].contains("=") ? tokens[2].split("=")[1] : tokens[2];
+            m.setDamageCost(parseLong(costRaw));
+        }
+    }
+
+    private void parseExtra(Mission m, String[] tokens) {
+        for (int i = 1; i < tokens.length; i++) {
+            String[] kv = tokens[i].split("=", 2);
+            if (kv.length < 2) continue;
+            String key = kv[0].trim();
+            String val = kv[1].trim();
+            switch (key) {
+                case "tags" -> m.getOperationTags().addAll(splitList(val));
+                case "support" -> m.getSupportUnits().addAll(splitList(val));
+                case "recommendations" -> m.getRecommendations().addAll(splitList(val));
+                case "artifacts" -> m.getArtifactsRecovered().addAll(splitList(val));
+                case "zones" -> m.getEvacuationZones().addAll(splitList(val));
+                case "effects" -> m.getStatusEffects().addAll(splitList(val));
+                case "notes" -> m.setNotes(val);
+            }
+        }
+    }
+
     private Long parseLong(String v) {
-        if (v == null || v.isBlank()) return null;
         try {
             return (long) Double.parseDouble(v); 
         } catch (Exception e) {
@@ -167,10 +187,10 @@ public class DifParser extends AbstractMissionParser {
         }
     }
 
-    private double parseDouble(String v) {
-        try { 
+    private Double parseDouble(String v) {
+        try {
             return Double.parseDouble(v); 
-        } catch (Exception e) { 
+        } catch (Exception e) {
             return 0.0; 
         }
     }

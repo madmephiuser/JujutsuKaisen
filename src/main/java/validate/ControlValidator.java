@@ -1,12 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package validate;
 
 import com.mycompany.jujutsukaisen.*;
 import java.util.List;
-
 
 public class ControlValidator extends Validator<Mission> {
 
@@ -17,20 +13,21 @@ public class ControlValidator extends Validator<Mission> {
         checkRequired(mission.getMissionId(), "missionId");
         checkRequired(mission.getDate(), "date");
         checkRequired(mission.getLocation(), "location");
+        
         if (mission.getOutcome() == null) {
             throw new ValidationException("Поле 'outcome' не должно быть пустым");
         }
 
-        if (mission.getDamageCost() != null && mission.getDamageCost() < 0 ) {
-            throw new ValidationException("Ущерб (damageCost) не может быть отрицательным");
+        if (mission.getDamageCost() != null && mission.getDamageCost() < 0) {
+            throw new ValidationException("Ущерб не может быть отрицательным");
         }
 
         if (mission.getCurse() == null) {
-            throw new ValidationException("Блок данных 'curse' не должно быть пустым");
+            throw new ValidationException("Блок 'curse' обязателен");
         } else {
             checkRequired(mission.getCurse().getName(), "curse.name");
             if (mission.getCurse().getThreatLevel() == null) {
-                throw new ValidationException("Уровень угрозы проклятия (threatLevel) обязателен");
+                throw new ValidationException("Уровень угрозы обязателен");
             }
         }
 
@@ -42,24 +39,20 @@ public class ControlValidator extends Validator<Mission> {
     }
 
     private void validateSorcerers(List<Sorcerer> sorcerers) throws ValidationException {
-        if (sorcerers != null) {
-            for (Sorcerer s : sorcerers) {
-                if (s == null) continue;
-                checkRequired(s.getName(), "sorcerers.name");
-                if (s.getRank() == null) {
-                    throw new ValidationException("Для участника " + s.getName() + " должен быть указан ранг");
-                }
-            }
+        if (sorcerers == null) return;
+        for (Sorcerer s : sorcerers) {
+            if (s == null) continue;
+            checkRequired(s.getName(), "sorcerers.name");
+            if (s.getRank() == null) throw new ValidationException("Ранг участника обязателен");
         }
     }
 
     private void validateTechniques(List<Technique> techniques, List<Sorcerer> sorcerers) throws ValidationException {
         if (techniques == null || techniques.isEmpty()) return;
-
         for (Technique tech : techniques) {
             if (tech == null) continue;
             checkRequired(tech.getName(), "techniques.name");
-            if (tech.getType() == null) throw new ValidationException("Тип техники не указан для: " + tech.getName());
+            if (tech.getType() == null) throw new ValidationException("Тип техники обязателен");
             checkRequired(tech.getOwner(), "techniques.owner");
 
             String ownerName = tech.getOwner().trim();
@@ -72,27 +65,23 @@ public class ControlValidator extends Validator<Mission> {
                     }
                 }
             }
-            if (!found) {
-                throw new ValidationException("Техника '" + tech.getName() + "' закреплена за магом '" 
-                    + ownerName + "', который отсутствует в списке участников миссии!");
-            }
+            if (!found) throw new ValidationException("Владелец техники не найден в списке участников");
         }
     }
 
     private void validateTimeline(List<OperationTimeline> timeline) throws ValidationException {
-        if (timeline != null) {
-            for (OperationTimeline ot : timeline) {
-                if (ot == null) continue;
-                checkRequired(ot.getTimestamp(), "operationTimeline.timestamp");
-                checkRequired(ot.getDescription(), "operationTimeline.description");
-                if (ot.getType() == null) throw new ValidationException("Тип события в хронологии не указан");
-            }
+        if (timeline == null) return;
+        for (OperationTimeline ot : timeline) {
+            if (ot == null) continue;
+            checkRequired(ot.getTimestamp(), "timeline.timestamp");
+            checkRequired(ot.getDescription(), "timeline.description");
+            if (ot.getType() == null) throw new ValidationException("Тип события обязателен");
         }
     }
 
     private void checkRequired(String value, String fieldName) throws ValidationException {
         if (value == null || value.trim().isEmpty()) {
-            throw new ValidationException("Поле '" + fieldName + "' обязательно для заполнения");
+            throw new ValidationException("Поле '" + fieldName + "' обязательно");
         }
     }
 }

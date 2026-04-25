@@ -5,7 +5,8 @@ import com.mycompany.jujutsukaisen.*;
 import enums.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TxtParser extends AbstractMissionParser {
     
@@ -17,7 +18,7 @@ public class TxtParser extends AbstractMissionParser {
     
     @Override
     public Mission doParse(String filePath) {
-        Mission.Builder builder = Mission.builder();
+        Mission mission = new Mission();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -36,68 +37,68 @@ public class TxtParser extends AbstractMissionParser {
                 String value = parts[1].trim();
 
                 switch (currentSection) {
-                    case "[MISSION]" -> parseMission(builder, key, value);
-                    case "[CURSE]" -> parseCurse(builder, key, value);
-                    case "[SORCERER]" -> parseSorcerer(builder, key, value);
-                    case "[TECHNIQUE]" -> parseTechnique(builder, key, value);
-                    case "[ECONOMIC]" -> parseEconomic(builder, key, value);
-                    case "[CIVILIAN]" -> parseCivilian(builder, key, value);
-                    case "[ENEMY]" -> parseEnemy(builder, key, value);
-                    case "[ENVIRONMENT]" -> parseEnvironment(builder, key, value);
-                    case "[TIMELINE]" -> parseTimeline(builder, key, value);
-                    case "[EXTRA]" -> parseExtra(builder, key, value);
+                    case "[MISSION]" -> parseMission(mission, key, value);
+                    case "[CURSE]" -> parseCurse(mission, key, value);
+                    case "[SORCERER]" -> parseSorcerer(mission, key, value);
+                    case "[TECHNIQUE]" -> parseTechnique(mission, key, value);
+                    case "[ECONOMIC]" -> parseEconomic(mission, key, value);
+                    case "[CIVILIAN]" -> parseCivilian(mission, key, value);
+                    case "[ENEMY]" -> parseEnemy(mission, key, value);
+                    case "[ENVIRONMENT]" -> parseEnvironment(mission, key, value);
+                    case "[TIMELINE]" -> parseTimeline(mission, key, value);
+                    case "[EXTRA]" -> parseExtra(mission, key, value);
                 }
             }
         } catch (Exception e) {
             System.err.println("Ошибка TXT парсера: " + e.getMessage());
         }
-        return builder.build();
+        return mission;
     }
     
-    private void parseMission(Mission.Builder b, String key, String value) {
+    private void parseMission(Mission m, String key, String value) {
         switch (key) {
-            case "missionId" -> b.missionId(value);
-            case "date" -> b.date(value);
-            case "location" -> b.location(value);
-            case "outcome" -> b.outcome(MissionOutcome.fromString(value));
-            case "damageCost" -> b.damageCost(parseLong(value));
+            case "missionId" -> m.setMissionId(value);
+            case "date" -> m.setDate(value);
+            case "location" -> m.setLocation(value);
+            case "outcome" -> m.setOutcome(MissionOutcome.fromString(value));
+            case "damageCost" -> m.setDamageCost(parseLong(value));
         }
     }
 
-    private void parseCurse(Mission.Builder b, String key, String value) {
-        Curse c = b.getCurse();
-        if (key.equals("name")) c.setName(value);
-        else if (key.equals("threatLevel")) c.setThreatLevel(ThreatLevel.fromString(value));
+    private void parseCurse(Mission m, String key, String value) {
+        if (m.getCurse() == null) m.setCurse(new Curse());
+        if (key.equals("name")) m.getCurse().setName(value);
+        else if (key.equals("threatLevel")) m.getCurse().setThreatLevel(ThreatLevel.fromString(value));
     }
 
-    private void parseSorcerer(Mission.Builder b, String key, String value) {
+    private void parseSorcerer(Mission m, String key, String value) {
         if (key.equals("name")) {
-            b.addSorcerer(new Sorcerer(value));
+            m.getSorcerers().add(new Sorcerer(value));
         } else if (key.equals("rank")) {
-            Sorcerer last = b.getLastSorcerer();
-            if (last != null) last.setRank(SorcererRank.fromString(value));
-        }
-    }
-
-    private void parseTechnique(Mission.Builder b, String key, String value) {
-        if (key.equals("name")) {
-            Technique t = new Technique();
-            t.setName(value);
-            b.addTechnique(t);
-        } else {
-            Technique last = b.getLastTechnique();
-            if (last != null) {
-                switch (key) {
-                    case "type" -> last.setType(TechniqueType.fromString(value));
-                    case "owner" -> last.setOwner(value);
-                    case "damage" -> last.setDamage(parseLong(value));
-                }
+            if (!m.getSorcerers().isEmpty()) {
+                m.getSorcerers().get(m.getSorcerers().size() - 1).setRank(SorcererRank.fromString(value));
             }
         }
     }
 
-    private void parseEconomic(Mission.Builder b, String key, String value) {
-        EconomicAssessment ec = b.getEconomicAssessment();
+    private void parseTechnique(Mission m, String key, String value) {
+        if (key.equals("name")) {
+            Technique t = new Technique();
+            t.setName(value);
+            m.getTechniques().add(t);
+        } else if (!m.getTechniques().isEmpty()) {
+            Technique last = m.getTechniques().get(m.getTechniques().size() - 1);
+            switch (key) {
+                case "type" -> last.setType(TechniqueType.fromString(value));
+                case "owner" -> last.setOwner(value);
+                case "damage" -> last.setDamage(parseLong(value));
+            }
+        }
+    }
+
+    private void parseEconomic(Mission m, String key, String value) {
+        if (m.getEconomicAssessment() == null) m.setEconomicAssessment(new EconomicAssessment());
+        EconomicAssessment ec = m.getEconomicAssessment();
         switch (key) {
             case "totalDamageCost" -> ec.setTotalDamageCost(parseDouble(value));
             case "infrastructureDamage" -> ec.setInfrastructureDamage(parseDouble(value));
@@ -108,8 +109,11 @@ public class TxtParser extends AbstractMissionParser {
         }
     }
 
-    private void parseCivilian(Mission.Builder b, String key, String value) {
-        CivilianImpact ci = b.getCivilianImpact();
+    private void parseCivilian(Mission m, String key, String value) {
+        if (value == null || value.isEmpty()) return;
+        if (m.getCivilianImpact() == null) m.setCivilianImpact(new CivilianImpact());
+        CivilianImpact ci = m.getCivilianImpact();
+
         switch (key) {
             case "evacuated" -> ci.setEvacuated(Integer.valueOf(value));
             case "injured" -> ci.setInjured(Integer.parseInt(value));
@@ -118,19 +122,24 @@ public class TxtParser extends AbstractMissionParser {
         }
     }
 
-    private void parseEnemy(Mission.Builder b, String key, String value) {
-        EnemyActivity en = b.getEnemyActivity();
+    private void parseEnemy(Mission m, String key, String value) {
+        if (value == null || value.isEmpty()) return;
+
+        if (m.getEnemyActivity() == null) m.setEnemyActivity(new EnemyActivity());
+        EnemyActivity en = m.getEnemyActivity();
+
         switch (key) {
             case "behaviorType" -> en.setBehaviorType(value);
             case "mobility" -> en.setMobility(Mobility.fromString(value));
             case "escalationRisk" -> en.setEscalationRisk(RiskLevel.fromString(value));
-            case "targetPriority" -> en.setTargetPriority(splitList(value));
-            case "attackPatterns" -> en.setAttackPatterns(splitList(value));
+            case "targetPriority" -> en.getTargetPriority().addAll(splitList(value));
+            case "attackPatterns" -> en.getAttackPatterns().addAll(splitList(value));
         }
     }
 
-    private void parseEnvironment(Mission.Builder b, String key, String value) {
-        EnvironmentConditions env = b.getEnvironmentConditions();
+    private void parseEnvironment(Mission m, String key, String value) {
+        if (m.getEnvironmentConditions() == null) m.setEnvironmentConditions(new EnvironmentConditions());
+        EnvironmentConditions env = m.getEnvironmentConditions();
         switch (key) {
             case "weather" -> env.setWeather(value);
             case "timeOfDay" -> env.setTimeOfDay(value);
@@ -139,45 +148,47 @@ public class TxtParser extends AbstractMissionParser {
         }
     }
 
-    private void parseTimeline(Mission.Builder b, String key, String value) {
+    private void parseTimeline(Mission m, String key, String value) {
         if (key.equals("timestamp")) {
             OperationTimeline ot = new OperationTimeline();
             ot.setTimestamp(value);
-            b.addTimeline(ot);
-        } else {
-            OperationTimeline last = b.getLastTimeline();
-            if (last != null) {
-                if (key.equals("type")) last.setType(value);
-                else if (key.equals("description")) last.setDescription(value);
-            }
+            m.getOperationTimeline().add(ot);
+        } else if (!m.getOperationTimeline().isEmpty()) {
+            OperationTimeline last = m.getOperationTimeline().get(m.getOperationTimeline().size() - 1);
+            if (key.equals("type")) last.setType(value);
+            else if (key.equals("description")) last.setDescription(value);
         }
     }
 
-    private void parseExtra(Mission.Builder b, String key, String value) {
+    private void parseExtra(Mission m, String key, String value) {
         switch (key) {
-            case "tags" -> splitList(value).forEach(b::addTag);
-            case "support" -> splitList(value).forEach(b::addSupportUnit);
-            case "recommendations" -> splitList(value).forEach(b::addRecommendation);
-            case "artifacts" -> splitList(value).forEach(b::addArtifact);
-            case "zones" -> splitList(value).forEach(b::addEvacuationZone);
-            case "effects" -> splitList(value).forEach(b::addStatusEffect);
-            case "notes" -> b.notes(value);
+            case "tags" -> m.getOperationTags().addAll(splitList(value));
+            case "support" -> m.getSupportUnits().addAll(splitList(value));
+            case "recommendations" -> m.getRecommendations().addAll(splitList(value));
+            case "artifacts" -> m.getArtifactsRecovered().addAll(splitList(value));
+            case "zones" -> m.getEvacuationZones().addAll(splitList(value));
+            case "effects" -> m.getStatusEffects().addAll(splitList(value));
+            case "notes" -> m.setNotes(value);
         }
     }
+
     private Long parseLong(String val) {
-        if (val == null || val.isBlank()) return null;
-        return (long) Double.parseDouble(val);
+        try {
+            return (long) Double.parseDouble(val); 
+        } catch (Exception e) {
+            return 0L; 
+        }
     }
 
     private Double parseDouble(String val) {
-        return Double.valueOf(val);
+        try {
+            return Double.valueOf(val); 
+        } catch (Exception e) {
+            return 0.0; 
+        }
     }
 
-    private ArrayList<String> splitList(String val) {
-        ArrayList<String> list = new ArrayList<>();
-        for (String s : val.split(",")) {
-            list.add(s.trim());
-        }
-        return list;
+    private List<String> splitList(String val) {
+        return Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 }

@@ -18,6 +18,5 @@ public class ShortReportDecorator extends MissionDecorator {
         System.out.println("Дата: " + mission.getDate()); 
         System.out.println("Локация: " + mission.getLocation()); 
         System.out.println("Результат: " + mission.getOutcome()); 
-        super.display(mission);
     }
 }
