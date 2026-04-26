@@ -1,11 +1,15 @@
 package com.mycompany.jujutsukaisen;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import enums.ThreatLevel;
+import jakarta.persistence.*;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Embeddable
 public class Curse {
+    @Column(name = "curse_name")
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "curse_threat_level")
     private ThreatLevel threatLevel;
 
     public Curse() {}

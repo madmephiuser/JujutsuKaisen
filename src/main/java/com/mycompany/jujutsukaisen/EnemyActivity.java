@@ -3,9 +3,11 @@ package com.mycompany.jujutsukaisen;
 
 import enums.Mobility;
 import enums.RiskLevel;
+import jakarta.persistence.Embeddable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Embeddable
 public class EnemyActivity {
     private String behaviorType;
     private List<String> attackPatterns = new ArrayList<>(); 

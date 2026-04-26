@@ -1,6 +1,9 @@
 
 package com.mycompany.jujutsukaisen;
 
+import jakarta.persistence.Embeddable;
+
+@Embeddable
 public class CivilianImpact {
    private Integer evacuated;
     private Integer injured;

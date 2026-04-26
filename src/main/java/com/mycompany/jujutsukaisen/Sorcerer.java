@@ -1,18 +1,26 @@
 package com.mycompany.jujutsukaisen;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import enums.SorcererRank;
+import jakarta.persistence.*;
 
-
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Entity
+@Table(name = "sorcerers")
 public class Sorcerer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String name;
+
+    @Enumerated(EnumType.STRING)
     private SorcererRank rank;
+
+    @ManyToOne
+    @JoinColumn(name = "mission_id")
+    private Mission mission;
     
     public Sorcerer() {
-        
-    }
+    
+    }  
     public Sorcerer(String name) {
         this.name = name;
     }
@@ -22,12 +30,17 @@ public class Sorcerer {
     }
     public void setName(String name) {
         this.name = name; 
-    }
-
+    }  
     public SorcererRank getRank() {
         return rank; 
     }
     public void setRank(SorcererRank rank) {
         this.rank = rank; 
+    }
+    public void setMission(Mission mission) {
+        this.mission = mission; 
+    }
+    public Mission getMission() {
+        return mission; 
     }
 }

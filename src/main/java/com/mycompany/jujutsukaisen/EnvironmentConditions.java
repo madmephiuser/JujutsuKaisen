@@ -2,7 +2,9 @@
 package com.mycompany.jujutsukaisen;
 
 import enums.Visibility;
+import jakarta.persistence.Embeddable;
 
+@Embeddable
 public class EnvironmentConditions {
     private String weather;
     private String timeOfDay;

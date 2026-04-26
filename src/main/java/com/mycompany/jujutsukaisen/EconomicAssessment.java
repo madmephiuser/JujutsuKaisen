@@ -1,7 +1,9 @@
 
 package com.mycompany.jujutsukaisen;
 
+import jakarta.persistence.Embeddable;
 
+@Embeddable
 public class EconomicAssessment {
     private Double totalDamageCost;
     private Double infrastructureDamage;
