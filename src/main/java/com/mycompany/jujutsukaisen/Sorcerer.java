@@ -1,5 +1,6 @@
 package com.mycompany.jujutsukaisen;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import enums.SorcererRank;
 import jakarta.persistence.*;
 
@@ -16,6 +17,7 @@ public class Sorcerer {
 
     @ManyToOne
     @JoinColumn(name = "mission_id")
+    @JsonIgnore
     private Mission mission;
     
     public Sorcerer() {

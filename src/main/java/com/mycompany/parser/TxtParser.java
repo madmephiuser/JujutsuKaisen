@@ -1,24 +1,26 @@
-
 package com.mycompany.parser;
 
 import com.mycompany.jujutsukaisen.*;
 import enums.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class TxtParser extends AbstractMissionParser {
-    
+
     @Override
     protected boolean doCheck(String filePath) {
         String line = getFirstLine(filePath);
         return line != null && line.startsWith("[");
     }
-    
+
     @Override
     public Mission doParse(String filePath) {
         Mission mission = new Mission();
+        if (mission.getSorcerers() == null) mission.setSorcerers(new ArrayList<>());
+        if (mission.getTechniques() == null) mission.setTechniques(new ArrayList<>());
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -27,12 +29,15 @@ public class TxtParser extends AbstractMissionParser {
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty() || line.startsWith("#")) continue;
+
                 if (line.startsWith("[") && line.endsWith("]")) {
                     currentSection = line.toUpperCase();
                     continue;
                 }
+
                 String[] parts = line.split("=", 2);
                 if (parts.length < 2) continue;
+                
                 String key = parts[0].trim();
                 String value = parts[1].trim();
 
@@ -51,10 +56,11 @@ public class TxtParser extends AbstractMissionParser {
             }
         } catch (Exception e) {
             System.err.println("Ошибка TXT парсера: " + e.getMessage());
+            e.printStackTrace();
         }
         return mission;
     }
-    
+
     private void parseMission(Mission m, String key, String value) {
         switch (key) {
             case "missionId" -> m.setMissionId(value);
@@ -73,7 +79,9 @@ public class TxtParser extends AbstractMissionParser {
 
     private void parseSorcerer(Mission m, String key, String value) {
         if (key.equals("name")) {
-            m.getSorcerers().add(new Sorcerer(value));
+            Sorcerer s = new Sorcerer(value);
+            s.setMission(m);
+            m.getSorcerers().add(s);
         } else if (key.equals("rank")) {
             if (!m.getSorcerers().isEmpty()) {
                 m.getSorcerers().get(m.getSorcerers().size() - 1).setRank(SorcererRank.fromString(value));
@@ -85,6 +93,7 @@ public class TxtParser extends AbstractMissionParser {
         if (key.equals("name")) {
             Technique t = new Technique();
             t.setName(value);
+            t.setMission(m);
             m.getTechniques().add(t);
         } else if (!m.getTechniques().isEmpty()) {
             Technique last = m.getTechniques().get(m.getTechniques().size() - 1);
@@ -113,7 +122,6 @@ public class TxtParser extends AbstractMissionParser {
         if (value == null || value.isEmpty()) return;
         if (m.getCivilianImpact() == null) m.setCivilianImpact(new CivilianImpact());
         CivilianImpact ci = m.getCivilianImpact();
-
         switch (key) {
             case "evacuated" -> ci.setEvacuated(Integer.valueOf(value));
             case "injured" -> ci.setInjured(Integer.parseInt(value));
@@ -124,10 +132,8 @@ public class TxtParser extends AbstractMissionParser {
 
     private void parseEnemy(Mission m, String key, String value) {
         if (value == null || value.isEmpty()) return;
-
         if (m.getEnemyActivity() == null) m.setEnemyActivity(new EnemyActivity());
         EnemyActivity en = m.getEnemyActivity();
-
         switch (key) {
             case "behaviorType" -> en.setBehaviorType(value);
             case "mobility" -> en.setMobility(Mobility.fromString(value));
@@ -189,6 +195,7 @@ public class TxtParser extends AbstractMissionParser {
     }
 
     private List<String> splitList(String val) {
+        if (val == null || val.isEmpty()) return new ArrayList<>();
         return Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 }

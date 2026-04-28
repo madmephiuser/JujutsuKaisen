@@ -3,30 +3,42 @@ package com.mycompany.parser;
 import com.mycompany.jujutsukaisen.*;
 import enums.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class DifParser extends AbstractMissionParser {
-    
+
     @Override
     protected boolean doCheck(String filePath) {
         String firstLine = getFirstLine(filePath);
         return firstLine != null && firstLine.contains("|");
     }
-    
+
     @Override
     public Mission doParse(String filePath) {
         Mission mission = new Mission();
+
+        mission.setSorcerers(new ArrayList<>());
+        mission.setTechniques(new ArrayList<>());
+        mission.setOperationTimeline(new ArrayList<>());
+        mission.setOperationTags(new ArrayList<>());
+        mission.setSupportUnits(new ArrayList<>());
+        mission.setRecommendations(new ArrayList<>());
+        mission.setArtifactsRecovered(new ArrayList<>());
+        mission.setEvacuationZones(new ArrayList<>());
+        mission.setStatusEffects(new ArrayList<>());
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
-                if (line.isEmpty()) continue;
+                if (line.isEmpty() || line.startsWith("#")) continue;
 
                 String[] tokens = line.split("\\|");
                 for (int i = 0; i < tokens.length; i++) tokens[i] = tokens[i].trim();
                 
+                if (tokens.length == 0) continue;
                 String eventType = tokens[0].toUpperCase();
 
                 switch (eventType) {
@@ -45,6 +57,7 @@ public class DifParser extends AbstractMissionParser {
             }
         } catch (Exception e) {
             System.err.println("Ошибка DIF парсера: " + e.getMessage());
+            e.printStackTrace();
         }
         return mission;
     }
@@ -65,6 +78,7 @@ public class DifParser extends AbstractMissionParser {
         if (tokens.length > 2) {
             Sorcerer s = new Sorcerer(tokens[1]);
             s.setRank(SorcererRank.fromString(tokens[2]));
+            s.setMission(m);
             m.getSorcerers().add(s);
         }
     }
@@ -76,6 +90,7 @@ public class DifParser extends AbstractMissionParser {
             t.setType(TechniqueType.fromString(tokens[2]));
             t.setOwner(tokens[3]);
             t.setDamage(parseLong(tokens[4]));
+            t.setMission(m);
             m.getTechniques().add(t);
         }
     }
@@ -100,38 +115,32 @@ public class DifParser extends AbstractMissionParser {
     }
 
     private void parseCivilianImpact(Mission m, String[] tokens) {
+        if (m.getCivilianImpact() == null) m.setCivilianImpact(new CivilianImpact());
+        CivilianImpact ci = m.getCivilianImpact();
         for (int i = 1; i < tokens.length; i++) {
             String[] kv = tokens[i].split("=", 2);
             if (kv.length < 2) continue;
-
             String key = kv[0].trim();
             String val = kv[1].trim();
+            if (val.isEmpty()) continue;
 
-            if (!val.isEmpty()) { 
-                if (m.getCivilianImpact() == null) m.setCivilianImpact(new CivilianImpact());
-                CivilianImpact ci = m.getCivilianImpact();
-
-                switch (key) {
-                    case "evacuated" -> ci.setEvacuated(Integer.parseInt(val));
-                    case "injured" -> ci.setInjured(Integer.parseInt(val));
-                    case "missing" -> ci.setMissing(Integer.parseInt(val));
-                    case "risk" -> ci.setPublicExposureRisk(val);
-                }
+            switch (key) {
+                case "evacuated" -> ci.setEvacuated(Integer.parseInt(val));
+                case "injured" -> ci.setInjured(Integer.parseInt(val));
+                case "missing" -> ci.setMissing(Integer.parseInt(val));
+                case "risk" -> ci.setPublicExposureRisk(val);
             }
         }
-}
+    }
 
     private void parseEnemyAction(Mission m, String[] tokens) {
-        if (tokens.length > 1) {
-            if (m.getEnemyActivity() == null) m.setEnemyActivity(new EnemyActivity());
-            EnemyActivity ea = m.getEnemyActivity();
-
-            if (tokens.length > 1) ea.setBehaviorType(tokens[1]);
-            if (tokens.length > 2) ea.getAttackPatterns().addAll(splitList(tokens[2]));
-            if (tokens.length > 3) ea.getTargetPriority().addAll(splitList(tokens[3]));
-            if (tokens.length > 4) ea.setMobility(Mobility.fromString(tokens[4]));
-            if (tokens.length > 5) ea.setEscalationRisk(RiskLevel.fromString(tokens[5]));
-        }
+        if (m.getEnemyActivity() == null) m.setEnemyActivity(new EnemyActivity());
+        EnemyActivity ea = m.getEnemyActivity();
+        if (tokens.length > 1) ea.setBehaviorType(tokens[1]);
+        if (tokens.length > 2) ea.getAttackPatterns().addAll(splitList(tokens[2]));
+        if (tokens.length > 3) ea.getTargetPriority().addAll(splitList(tokens[3]));
+        if (tokens.length > 4) ea.setMobility(Mobility.fromString(tokens[4]));
+        if (tokens.length > 5) ea.setEscalationRisk(RiskLevel.fromString(tokens[5]));
     }
 
     private void parseEnvironment(Mission m, String[] tokens) {
@@ -156,8 +165,8 @@ public class DifParser extends AbstractMissionParser {
     private void parseMissionResult(Mission m, String[] tokens) {
         if (tokens.length > 1) m.setOutcome(MissionOutcome.fromString(tokens[1]));
         if (tokens.length > 2) {
-            String costRaw = tokens[2].contains("=") ? tokens[2].split("=")[1] : tokens[2];
-            m.setDamageCost(parseLong(costRaw));
+            String val = tokens[2].contains("=") ? tokens[2].split("=")[1] : tokens[2];
+            m.setDamageCost(parseLong(val));
         }
     }
 
@@ -178,24 +187,17 @@ public class DifParser extends AbstractMissionParser {
             }
         }
     }
-
-    private Long parseLong(String v) {
-        try {
-            return (long) Double.parseDouble(v); 
-        } catch (Exception e) {
-            return 0L; 
-        }
-    }
-
-    private Double parseDouble(String v) {
-        try {
-            return Double.parseDouble(v); 
-        } catch (Exception e) {
-            return 0.0; 
-        }
-    }
     
-    private List<String> splitList(String v) {
-        return Arrays.stream(v.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
+    private Long parseLong(String val) {
+        try { return (long) Double.parseDouble(val); } catch (Exception e) { return 0L; }
+    }
+
+    private Double parseDouble(String val) {
+        try { return Double.valueOf(val); } catch (Exception e) { return 0.0; }
+    }
+
+    private List<String> splitList(String val) {
+        if (val == null || val.isEmpty()) return new ArrayList<>();
+        return Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 }

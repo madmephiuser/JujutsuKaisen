@@ -1,5 +1,6 @@
 package com.mycompany.jujutsukaisen;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import enums.TechniqueType;
 import jakarta.persistence.*;
@@ -19,9 +20,10 @@ public class Technique {
     
     private String owner; 
     private long damage;
-
+    
     @ManyToOne
     @JoinColumn(name = "mission_id")
+    @JsonIgnore
     private Mission mission;
 
     public Technique() {}

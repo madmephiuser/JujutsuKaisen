@@ -1,15 +1,15 @@
+package report;
 
-package com.mycompany.jujutsukaisen;
-
-import javax.swing.*;
-import java.awt.*;
+import com.mycompany.jujutsukaisen.*;
+import org.springframework.stereotype.Component;
 import java.util.List;
 
-public class MissionRenderer implements MissionDisplay {
+@Component
+public class DetailedReport implements IReport {
 
     @Override
-    public void display(Mission m) {
-        if (m == null) return;
+    public String generate(Mission m) {
+        if (m == null) return "Миссия не найдена.";
         StringBuilder sb = new StringBuilder();
 
         sb.append("ID МИССИИ: ").append(m.getMissionId()).append("\n");
@@ -37,7 +37,10 @@ public class MissionRenderer implements MissionDisplay {
             sb.append("\nТехники\n");
             for (Technique t : m.getTechniques()) {
                 sb.append("- ").append(t.getName()).append(" (").append(t.getType()).append(")\n");
-                renderField(sb, "  Владелец: ", t.getOwner());
+                if (t.getOwner() != null) {
+                    renderField(sb, "  Владелец: ", t.getOwner()); 
+                }
+
                 renderNumericField(sb, "  Урон: ", t.getDamage());
             }
         }
@@ -53,9 +56,7 @@ public class MissionRenderer implements MissionDisplay {
             if (ec.getInsuranceCovered() != null) {
                 ecSb.append("Страховка: ").append(ec.getInsuranceCovered() ? "Да" : "Нет").append("\n");
             }
-            if (ecSb.length() > 0) {
-                sb.append("\nЭкономическая оценка ущерба\n").append(ecSb);
-            }
+            if (ecSb.length() > 0) sb.append("\nЭкономическая оценка ущерба\n").append(ecSb);
         }
 
         CivilianImpact ci = m.getCivilianImpact();
@@ -65,9 +66,7 @@ public class MissionRenderer implements MissionDisplay {
             renderNumericField(ciSb, "Пострадавшие: ", ci.getInjured());
             renderNumericField(ciSb, "Пропавшие: ", ci.getMissing());
             renderField(ciSb, "Риск раскрытия: ", ci.getPublicExposureRisk());
-            if (ciSb.length() > 0) {
-                sb.append("\nВлияние на граждан\n").append(ciSb);
-            }
+            if (ciSb.length() > 0) sb.append("\nВлияние на граждан\n").append(ciSb);
         }
 
         EnemyActivity en = m.getEnemyActivity();
@@ -78,9 +77,7 @@ public class MissionRenderer implements MissionDisplay {
             renderList(enSb, "Паттерны атак: ", en.getAttackPatterns());
             renderField(enSb, "Мобильность: ", en.getMobility());
             renderField(enSb, "Риск эскалации: ", en.getEscalationRisk());
-            if (enSb.length() > 0) {
-                sb.append("\nПоведение противника\n").append(enSb);
-            }
+            if (enSb.length() > 0) sb.append("\nПоведение противника\n").append(enSb);
         }
 
         EnvironmentConditions env = m.getEnvironmentConditions();
@@ -90,17 +87,13 @@ public class MissionRenderer implements MissionDisplay {
             renderField(envSb, "Время суток: ", env.getTimeOfDay());
             renderField(envSb, "Видимость: ", env.getVisibility());
             renderNumericField(envSb, "Плотность энергии: ", env.getCursedEnergyDensity());
-            if (envSb.length() > 0) {
-                sb.append("\nУсловия среды\n").append(envSb);
-            }
+            if (envSb.length() > 0) sb.append("\nУсловия среды\n").append(envSb);
         }
 
         if (hasData(m.getOperationTimeline())) {
             sb.append("\nХронология\n");
             for (OperationTimeline ot : m.getOperationTimeline()) {
-                sb.append(ot.getTimestamp()).append(" | ")
-                  .append(ot.getType()).append(": ")
-                  .append(ot.getDescription()).append("\n");
+                sb.append(ot.getTimestamp()).append(" | ").append(ot.getType()).append(": ").append(ot.getDescription()).append("\n");
             }
         }
 
@@ -112,7 +105,7 @@ public class MissionRenderer implements MissionDisplay {
         renderList(sb, "Зоны эвакуации: ", m.getEvacuationZones());
         renderList(sb, "Эффекты: ", m.getStatusEffects());
 
-        showGui(m.getMissionId(), sb.toString());
+        return sb.toString();
     }
 
     private void renderField(StringBuilder sb, String label, Object value) {
@@ -135,18 +128,5 @@ public class MissionRenderer implements MissionDisplay {
 
     private boolean hasData(List<?> list) {
         return list != null && !list.isEmpty();
-    }
-
-    private void showGui(String id, String text) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Отчет по миссии: " + id);
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            JTextArea ta = new JTextArea(text);
-            ta.setEditable(false);
-            frame.add(new JScrollPane(ta));
-            frame.setSize(650, 800);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
     }
 }

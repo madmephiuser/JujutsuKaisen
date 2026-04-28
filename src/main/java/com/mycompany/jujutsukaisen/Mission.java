@@ -3,8 +3,7 @@ package com.mycompany.jujutsukaisen;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import enums.MissionOutcome;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "missions")
@@ -25,6 +24,12 @@ public class Mission {
 
     @Embedded
     private Curse curse = new Curse();
+    
+    @OneToMany(mappedBy = "mission", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<Sorcerer> sorcerers = new LinkedHashSet<>();
+    
+    @OneToMany(mappedBy = "mission", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<Technique> techniques = new LinkedHashSet<>();
 
     @Embedded
     private EconomicAssessment economicAssessment = new EconomicAssessment();
@@ -37,12 +42,6 @@ public class Mission {
 
     @Embedded
     private EnvironmentConditions environmentConditions = new EnvironmentConditions();
-
-    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Sorcerer> sorcerers = new ArrayList<>();
-
-    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Technique> techniques = new ArrayList<>();
 
     @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OperationTimeline> operationTimeline = new ArrayList<>();
@@ -78,11 +77,13 @@ public class Mission {
 
     
     public void addSorcerer(Sorcerer s) {
+        if (this.sorcerers == null) this.sorcerers = new LinkedHashSet<>();
         this.sorcerers.add(s);
         s.setMission(this);
     }
 
     public void addTechnique(Technique t) {
+        if (this.techniques == null) this.techniques = new LinkedHashSet<>();
         this.techniques.add(t);
         t.setMission(this);
     }
@@ -113,10 +114,10 @@ public class Mission {
     public void setDamageCost(Long damageCost) { this.damageCost = damageCost; }
     public Curse getCurse() { return curse; }
     public void setCurse(Curse curse) { this.curse = curse; }
-    public List<Sorcerer> getSorcerers() { return sorcerers; }
-    public void setSorcerers(List<Sorcerer> sorcerers) { this.sorcerers = sorcerers; }
-    public List<Technique> getTechniques() { return techniques; }
-    public void setTechniques(List<Technique> techniques) { this.techniques = techniques; }
+    public List<Sorcerer> getSorcerers() { return sorcerers != null ? new ArrayList<>(sorcerers) : new ArrayList<>(); }
+    public void setSorcerers(List<Sorcerer> sorcerers) { this.sorcerers = (sorcerers != null) ? new LinkedHashSet<>(sorcerers) : new LinkedHashSet<>(); }
+    public List<Technique> getTechniques() { return techniques != null ? new ArrayList<>(techniques) : new ArrayList<>(); }
+    public void setTechniques(List<Technique> techniques) { this.techniques = (techniques != null) ? new LinkedHashSet<>(techniques) : new LinkedHashSet<>(); }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
     public EconomicAssessment getEconomicAssessment() { return economicAssessment; }
