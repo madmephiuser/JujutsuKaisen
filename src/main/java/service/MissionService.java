@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import validate.ControlValidator;
+import validate.ValidationException;
 
 @Service
 public class MissionService {
@@ -21,22 +23,28 @@ public class MissionService {
         Mission mission = FactoryParser.getParser().parse(filePath);
 
         if (mission != null) {
-            if (missionRepository.existsById(mission.getMissionId())) {
-                throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Отчет с id " + mission.getMissionId() + " уже есть в базе"
-                );
-            }
-            if (mission.getSorcerers() != null) {
-                mission.getSorcerers().forEach(s -> s.setMission(mission));
-            }
-            if (mission.getTechniques() != null) {
-                mission.getTechniques().forEach(t -> t.setMission(mission));
-            }
+                try {
+                    ControlValidator validator = new ControlValidator();
+                    validator.validate(mission);
 
-            return missionRepository.save(mission);
+                } catch (ValidationException e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+                }
+                if (missionRepository.existsById(mission.getMissionId())) {
+                    throw new ResponseStatusException(
+                        HttpStatus.CONFLICT, "Отчет с id " + mission.getMissionId() + " уже есть в базе"
+                    );
+                }
+                if (mission.getSorcerers() != null) {
+                    mission.getSorcerers().forEach(s -> s.setMission(mission));
+                }
+                if (mission.getTechniques() != null) {
+                    mission.getTechniques().forEach(t -> t.setMission(mission));
+                }
+                return missionRepository.save(mission);
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не удалось распарсить файл");
         }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не удалось распарсить файл");
-    }
 
     @Transactional(readOnly = true)
     public List<Mission> getAllMissions() {

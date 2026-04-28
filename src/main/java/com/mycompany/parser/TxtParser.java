@@ -80,11 +80,12 @@ public class TxtParser extends AbstractMissionParser {
     private void parseSorcerer(Mission m, String key, String value) {
         if (key.equals("name")) {
             Sorcerer s = new Sorcerer(value);
-            s.setMission(m);
-            m.getSorcerers().add(s);
+            m.addSorcerer(s);
         } else if (key.equals("rank")) {
-            if (!m.getSorcerers().isEmpty()) {
-                m.getSorcerers().get(m.getSorcerers().size() - 1).setRank(SorcererRank.fromString(value));
+            List<Sorcerer> list = m.getSorcerers();
+            if (!list.isEmpty()) {
+                Sorcerer last = list.get(list.size() - 1);
+                last.setRank(SorcererRank.fromString(value));
             }
         }
     }
@@ -93,7 +94,7 @@ public class TxtParser extends AbstractMissionParser {
         if (key.equals("name")) {
             Technique t = new Technique();
             t.setName(value);
-            t.setMission(m);
+            m.addTechnique(t);
             m.getTechniques().add(t);
         } else if (!m.getTechniques().isEmpty()) {
             Technique last = m.getTechniques().get(m.getTechniques().size() - 1);

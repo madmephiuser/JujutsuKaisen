@@ -78,8 +78,7 @@ public class DifParser extends AbstractMissionParser {
         if (tokens.length > 2) {
             Sorcerer s = new Sorcerer(tokens[1]);
             s.setRank(SorcererRank.fromString(tokens[2]));
-            s.setMission(m);
-            m.getSorcerers().add(s);
+            m.addSorcerer(s);
         }
     }
 
@@ -91,7 +90,7 @@ public class DifParser extends AbstractMissionParser {
             t.setOwner(tokens[3]);
             t.setDamage(parseLong(tokens[4]));
             t.setMission(m);
-            m.getTechniques().add(t);
+            m.addTechnique(t);
         }
     }
 

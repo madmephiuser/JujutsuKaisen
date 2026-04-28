@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Archive Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f3f2; color: #333; }
+        .glass-card { background: #FDFDF3; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); padding: 24px; }
+        .stat-card { background: #F8F1DE; border-radius: 12px; padding: 16px; border: 1px solid rgba(0,0,0,0.05); }
+        pre { background-color: #1A1D20; color: #E6E6E6; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+        .btn-main { background-color: #198754; transition: all 0.2s; }
+        .btn-main:hover { background-color: #157347; transform: translateY(-1px); }
+    </style>
+</head>
+<body class="p-8">
+
+    <header class="bg-[#011F1D] text-white rounded-2xl p-10 mb-8 flex justify-between items-start">
+        <div>
+            <h1 class="text-5xl font-bold mb-4">JujutsuKaisen Mission Archive</h1>
+        </div>
+        <div class="flex flex-col gap-3 items-end">
+            <a href="/swagger-ui/index.html" target="_blank" class="bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-full text-xs font-semibold transition">Открыть Swagger UI</a>
+        </div>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-3 space-y-8">
+            <section class="glass-card">
+                <h2 class="text-2xl font-bold mb-6">Загрузка миссии</h2>
+                <div class="mb-4">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Путь к файлу</label>
+                    <input type="text" id="filePath" placeholder="C:\missions\A1.json" class="w-full bg-[#F8F1DE] rounded-xl px-4 py-3 text-sm outline-none border border-transparent focus:border-emerald-500">
+                </div>
+                <button onclick="importMission()" class="w-full btn-main text-white py-3.5 rounded-xl font-bold text-sm">Загрузить</button>
+                <div id="importStatus" class="mt-4 text-xs hidden p-3 rounded-xl font-bold"></div>
+            </section>
+
+            <section class="glass-card">
+                <h2 class="text-2xl font-bold mb-6">Отчет по миссии</h2>
+                <div class="mb-4">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Выбранная миссия</label>
+                    <input type="text" id="selectedMissionId" readonly class="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-500 font-mono" placeholder="ID не выбран">
+                </div>
+                <div class="mb-6">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Тип отчета</label>
+                    <select id="reportType" class="w-full bg-[#F8F1DE] rounded-xl px-4 py-3 text-sm outline-none cursor-pointer">
+                        <option value="detailed">detailed</option>
+                        <option value="short">short</option>
+                    </select>
+                </div>
+                <div class="grid gap-3">
+                    <button onclick="generateTextReport()" class="w-full bg-[#F8F1DE] hover:bg-[#f2e9cf] py-3 rounded-xl text-sm font-bold transition">Показать отчет</button>
+                    <button onclick="downloadReport()" class="w-full bg-orange-50 text-orange-700 hover:bg-orange-100 py-3 rounded-xl text-sm font-bold transition">Скачать .txt</button>
+                    <button onclick="deleteMission()" class="w-full bg-red-50 text-red-600 hover:bg-red-100 py-3 rounded-xl text-sm font-bold transition mt-2 border border-red-100">Удалить миссию</button>
+                </div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-3">
+            <section class="glass-card h-full flex flex-col">
+                <h2 class="text-2xl font-bold mb-6">Сохраненные миссии</h2>
+                <div id="missionList" class="space-y-4 overflow-y-auto flex-1 pr-2"></div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-6">
+            <section class="glass-card h-full">
+                <h2 class="text-2xl font-bold mb-6">Содержимое миссии</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="stat-card"><div class="text-[9px] font-bold text-gray-500 uppercase mb-1">Mission ID</div><div class="font-bold text-sm truncate" id="stat-id">-</div></div>
+                </div>
+
+                <pre id="outputArea" class="p-8 h-[550px] overflow-auto shadow-inner text-xs border border-gray-800">Выберите миссию из архива для просмотра...</pre>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = "/api/missions";
+
+        async function importMission() {
+            const path = document.getElementById('filePath').value;
+            const status = document.getElementById('importStatus');
+            try {
+                const response = await fetch(`${API_BASE}/import?path=${encodeURIComponent(path)}`, { method: 'POST' });
+                if (response.ok) {
+                    status.className = "mt-4 text-xs p-4 rounded-xl bg-green-100 text-green-800 block font-bold";
+                    status.innerText = "Успешно загружено";
+                    refreshArchive();
+                } else {
+                    status.className = "mt-4 text-xs p-4 rounded-xl bg-red-100 text-red-800 block font-bold";
+                    status.innerText = "Ошибка импорта";
+                }
+            } catch (e) { alert("Ошибка сервера"); }
+        }
+
+        async function refreshArchive() {
+            const response = await fetch(API_BASE);
+            const missions = await response.json();
+            const list = document.getElementById('missionList');
+            list.innerHTML = missions.map(m => `
+                <div onclick="selectMission('${m.missionId}')" class="stat-card cursor-pointer hover:shadow-md transition group border-transparent hover:border-emerald-200">
+                    <div class="font-bold text-emerald-800 group-hover:text-emerald-600 transition">${m.missionId}</div>
+                    <div class="text-[11px] text-gray-500 mt-2">
+                        <div class="flex justify-between"><span>Дата:</span> <span class="text-gray-800">${m.date || '-'}</span></div>
+                        <div class="flex justify-between mt-1"><span>Итог:</span> <span class="font-bold">${m.outcome || '-'}</span></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function selectMission(id) {
+            document.getElementById('selectedMissionId').value = id;
+            const response = await fetch(`${API_BASE}/${id}`);
+            const data = await response.json();
+            document.getElementById('outputArea').innerText = JSON.stringify(data, null, 2);
+            document.getElementById('stat-id').innerText = data.missionId;
+            document.getElementById('stat-date').innerText = data.date || "-";
+            document.getElementById('stat-location').innerText = data.location || "-";
+            document.getElementById('stat-outcome').innerText = data.outcome || "-";
+            document.getElementById('stat-damage').innerText = data.damageCost || "0";
+            document.getElementById('stat-techs').innerText = data.techniques ? data.techniques.length : "0";
+            document.getElementById('stat-sorcerers').innerText = data.sorcerers ? data.sorcerers.length : "0";
+        }
+
+        async function deleteMission() {
+            const id = document.getElementById('selectedMissionId').value;
+            if (!id) { alert("Сначала выберите миссию из архива"); return; }
+
+            if (confirm(`Вы действительно хотите удалить миссию ${id}?`)) {
+                try {
+                    const response = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        alert("Миссия удалена");
+                        document.getElementById('selectedMissionId').value = "";
+                        document.getElementById('outputArea').innerText = "Выберите миссию из архива...";
+                        refreshArchive();
+                    } else {
+                        alert("Ошибка при удалении");
+                    }
+                } catch (e) { alert("Ошибка подключения к серверу"); }
+            }
+        }
+
+        async function generateTextReport() {
+            const id = document.getElementById('selectedMissionId').value;
+            const isFull = document.getElementById('reportType').value === 'detailed';
+            if(!id) return;
+            const response = await fetch(`${API_BASE}/${id}/report?full=${isFull}`);
+            const text = await response.text();
+            document.getElementById('outputArea').innerText = text;
+        }
+
+        function downloadReport() {
+            const id = document.getElementById('selectedMissionId').value;
+            const text = document.getElementById('outputArea').innerText;
+            if(!id || text.includes("Выберите")) return;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Report_${id}.txt`;
+            a.click();
+        }
+
+        refreshArchive();
+    </script>
+</body>
+</html>
