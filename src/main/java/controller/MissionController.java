@@ -1,7 +1,5 @@
-
 package controller;
 
-import com.mycompany.jujutsukaisen.Mission;
 import com.mycompany.jujutsukaisen.Mission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
@@ -36,12 +35,20 @@ public class MissionController {
         return missionService.getAllMissions();
     }
 
-    @PostMapping("/import")
-    @Operation(summary = "загрузить отчет миссии")
+    @PostMapping("/upload")
+    @Operation(summary = "загрузить отчет миссии из файла")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Миссия успешно создана"),
+        @ApiResponse(responseCode = "400", description = "Ошибка валидации или парсинга"),
         @ApiResponse(responseCode = "409", description = "Отчет с таким id уже существует")
     })
+    public ResponseEntity<Mission> uploadMission(@RequestParam("file") MultipartFile file) {
+        Mission mission = missionService.importMissionFromFile(file);
+        return new ResponseEntity<>(mission, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/import")
+    @Operation(summary = "загрузить отчет миссии по пути")
     public ResponseEntity<Mission> importMission(@RequestParam String path) {
         return new ResponseEntity<>(missionService.importMission(path), HttpStatus.CREATED);
     }

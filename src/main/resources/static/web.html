@@ -13,6 +13,24 @@
         pre { background-color: #1A1D20; color: #E6E6E6; border-radius: 12px; font-size: 13px; line-height: 1.6; }
         .btn-main { background-color: #198754; transition: all 0.2s; }
         .btn-main:hover { background-color: #157347; transform: translateY(-1px); }
+        .file-input-label {
+            background-color: #F8F1DE;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .file-input-label:hover {
+            border-color: #198754;
+            background-color: #f2e9cf;
+        }
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 <body class="p-8">
@@ -31,11 +49,26 @@
         <div class="lg:col-span-3 space-y-8">
             <section class="glass-card">
                 <h2 class="text-2xl font-bold mb-6">Загрузка миссии</h2>
+                
+                <!-- СПОСОБ 1: Выбор файла через кнопку -->
                 <div class="mb-4">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Путь к файлу</label>
-                    <input type="text" id="filePath" placeholder="C:\missions\A1.json" class="w-full bg-[#F8F1DE] rounded-xl px-4 py-3 text-sm outline-none border border-transparent focus:border-emerald-500">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Способ 1: Выбрать файл</label>
+                    <label class="file-input-label block">
+                         Нажмите для выбора файла
+                        <input type="file" id="fileInput" accept=".json,.xml,.yaml,.yml,.txt,.dif" class="hidden" onchange="uploadFile()">
+                    </label>
+                    <div id="selectedFileInfo" class="mt-2 text-xs text-gray-500 hidden"></div>
                 </div>
-                <button onclick="importMission()" class="w-full btn-main text-white py-3.5 rounded-xl font-bold text-sm">Загрузить</button>
+                
+                <hr>
+                
+                <!-- СПОСОБ 2: Ввести путь к файлу -->
+                <div class="mb-4">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Способ 2: Ввести путь к файлу</label>
+                    <input type="text" id="filePath" placeholder="C:\missions\mission.json" class="w-full bg-[#F8F1DE] rounded-xl px-4 py-3 text-sm outline-none border border-transparent focus:border-emerald-500">
+                    <button onclick="importMissionByPath()" class="w-full mt-2 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-xl text-sm font-bold transition">Загрузить по пути</button>
+                </div>
+                
                 <div id="importStatus" class="mt-4 text-xs hidden p-3 rounded-xl font-bold"></div>
             </section>
 
@@ -48,13 +81,12 @@
                 <div class="mb-6">
                     <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Тип отчета</label>
                     <select id="reportType" class="w-full bg-[#F8F1DE] rounded-xl px-4 py-3 text-sm outline-none cursor-pointer">
-                        <option value="detailed">detailed</option>
-                        <option value="short">short</option>
+                        <option value="detailed">Подробный</option>
+                        <option value="short">Краткий</option>
                     </select>
                 </div>
                 <div class="grid gap-3">
                     <button onclick="generateTextReport()" class="w-full bg-[#F8F1DE] hover:bg-[#f2e9cf] py-3 rounded-xl text-sm font-bold transition">Показать отчет</button>
-                    <button onclick="downloadReport()" class="w-full bg-orange-50 text-orange-700 hover:bg-orange-100 py-3 rounded-xl text-sm font-bold transition">Скачать .txt</button>
                     <button onclick="deleteMission()" class="w-full bg-red-50 text-red-600 hover:bg-red-100 py-3 rounded-xl text-sm font-bold transition mt-2 border border-red-100">Удалить миссию</button>
                 </div>
             </section>
@@ -83,26 +115,95 @@
     <script>
         const API_BASE = "/api/missions";
 
-        async function importMission() {
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('importStatus');
+            statusDiv.classList.remove('hidden');
+            
+            if (type === 'success') {
+                statusDiv.className = "mt-4 text-xs p-4 rounded-xl bg-green-100 text-green-800 block font-bold";
+            } else if (type === 'error') {
+                statusDiv.className = "mt-4 text-xs p-4 rounded-xl bg-red-100 text-red-800 block font-bold";
+            } else {
+                statusDiv.className = "mt-4 text-xs p-4 rounded-xl bg-blue-100 text-blue-800 block font-bold";
+            }
+            
+            statusDiv.innerText = message;
+            
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        async function uploadFile() {
+            const input = document.getElementById('fileInput');
+            const file = input.files[0];
+            const fileInfo = document.getElementById('selectedFileInfo');
+            
+            if (!file) return;
+            
+            fileInfo.classList.remove('hidden');
+            fileInfo.innerHTML = `Выбран: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            
+            try {
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const mission = await response.json();
+                    showStatus(`Миссия "${mission.missionId}" успешно загружена!`, "success");
+                    refreshArchive();
+                    setTimeout(() => selectMission(mission.missionId), 500);
+                    fileInfo.classList.add('hidden');
+                } else {
+                    const errorData = await response.json();
+                    showStatus(`${errorData.message || "Ошибка импорта"}`, "error");
+                }
+            } catch (e) {
+                showStatus(` Ошибка сервера: ${e.message}`, "error");
+            }
+            
+            document.getElementById('fileInput').value = '';
+        }
+
+        async function importMissionByPath() {
             const path = document.getElementById('filePath').value;
-            const status = document.getElementById('importStatus');
+            
+            if (!path.trim()) {
+                showStatus(" Укажите путь к файлу", "error");
+                return;
+            }            
             try {
                 const response = await fetch(`${API_BASE}/import?path=${encodeURIComponent(path)}`, { method: 'POST' });
+                
                 if (response.ok) {
-                    status.className = "mt-4 text-xs p-4 rounded-xl bg-green-100 text-green-800 block font-bold";
-                    status.innerText = "Успешно загружено";
+                    const mission = await response.json();
+                    showStatus(`Миссия "${mission.missionId}" успешно загружена!`, "success");
                     refreshArchive();
+                    setTimeout(() => selectMission(mission.missionId), 500);
+                    document.getElementById('filePath').value = "";
                 } else {
-                    status.className = "mt-4 text-xs p-4 rounded-xl bg-red-100 text-red-800 block font-bold";
-                    status.innerText = "Ошибка импорта";
+                    const errorData = await response.json();
+                    showStatus(`${errorData.message || "Ошибка импорта"}`, "error");
                 }
-            } catch (e) { alert("Ошибка сервера"); }
+            } catch (e) {
+                showStatus(`Ошибка сервера: ${e.message}`, "error");
+            }
         }
 
         async function refreshArchive() {
             const response = await fetch(API_BASE);
             const missions = await response.json();
             const list = document.getElementById('missionList');
+            if (missions.length === 0) {
+                list.innerHTML = '<div class="text-gray-400 text-center py-8">Нет сохраненных миссий</div>';
+                return;
+            }
             list.innerHTML = missions.map(m => `
                 <div onclick="selectMission('${m.missionId}')" class="stat-card cursor-pointer hover:shadow-md transition group border-transparent hover:border-emerald-200">
                     <div class="font-bold text-emerald-800 group-hover:text-emerald-600 transition">${m.missionId}</div>
@@ -119,7 +220,7 @@
             const response = await fetch(`${API_BASE}/${id}`);
             const data = await response.json();
             document.getElementById('outputArea').innerText = JSON.stringify(data, null, 2);
-            document.getElementById('stat-id').innerText = data.missionId;
+            document.getElementById('stat-id').innerText = data.missionId || '-';
             document.getElementById('stat-date').innerText = data.date || "-";
             document.getElementById('stat-location').innerText = data.location || "-";
             document.getElementById('stat-outcome').innerText = data.outcome || "-";
@@ -141,7 +242,8 @@
                         document.getElementById('outputArea').innerText = "Выберите миссию из архива...";
                         refreshArchive();
                     } else {
-                        alert("Ошибка при удалении");
+                        const errorData = await response.json();
+                        alert("Ошибка: " + (errorData.message || "Неизвестная ошибка"));
                     }
                 } catch (e) { alert("Ошибка подключения к серверу"); }
             }
@@ -150,7 +252,10 @@
         async function generateTextReport() {
             const id = document.getElementById('selectedMissionId').value;
             const isFull = document.getElementById('reportType').value === 'detailed';
-            if(!id) return;
+            if(!id) {
+                alert("Сначала выберите миссию");
+                return;
+            }
             const response = await fetch(`${API_BASE}/${id}/report?full=${isFull}`);
             const text = await response.text();
             document.getElementById('outputArea').innerText = text;
@@ -159,13 +264,17 @@
         function downloadReport() {
             const id = document.getElementById('selectedMissionId').value;
             const text = document.getElementById('outputArea').innerText;
-            if(!id || text.includes("Выберите")) return;
+            if(!id || text.includes("Выберите миссию")) {
+                alert("Сначала выберите миссию");
+                return;
+            }
             const blob = new Blob([text], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `Report_${id}.txt`;
             a.click();
+            window.URL.revokeObjectURL(url);
         }
 
         refreshArchive();
