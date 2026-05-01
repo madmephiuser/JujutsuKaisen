@@ -27,7 +27,7 @@ public class Mission {
     
     @OneToMany(mappedBy = "mission", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Sorcerer> sorcerers = new LinkedHashSet<>();
-    
+
     @OneToMany(mappedBy = "mission", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Technique> techniques = new LinkedHashSet<>();
 
