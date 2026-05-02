@@ -1,5 +1,6 @@
 package com.mycompany.jujutsukaisen;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import enums.MissionOutcome;
 import jakarta.persistence.*;
@@ -26,9 +27,11 @@ public class Mission {
     private Curse curse = new Curse();
     
     @OneToMany(mappedBy = "mission", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Sorcerer> sorcerers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "mission", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Technique> techniques = new LinkedHashSet<>();
 
     @Embedded
@@ -44,6 +47,7 @@ public class Mission {
     private EnvironmentConditions environmentConditions = new EnvironmentConditions();
 
     @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<OperationTimeline> operationTimeline = new ArrayList<>();
 
     @ElementCollection
